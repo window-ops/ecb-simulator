@@ -1,0 +1,16 @@
+<!-- The horizontal stroke of Breeze's list-add (actions_22_list-add.svg),
+     alone: a minus drawn as Breeze draws its plus -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22">
+  <defs id="defs3051">
+    <style type="text/css" id="current-color-scheme">
+      .ColorScheme-Text {
+        color:#232629;
+      }
+      </style>
+  </defs>
+ <path 
+    style="fill:currentColor;fill-opacity:1;stroke:none" 
+    d="M 3 11 L 3 12 L 18 12 L 18 11 L 3 11 z "
+    class="ColorScheme-Text"
+    />  
+</svg>

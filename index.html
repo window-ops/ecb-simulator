@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A turn-based game in which the player leads the European Central Bank and tries to keep the euro crisis from happening.">
+    <meta name="theme-color" content="#dee0e2">
+    <title>ECB Simulator</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10.5' fill='%233daee9'/%3E%3Cpath d='M15.6 8.2a4.6 4.6 0 1 0 0 7.6' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3Cpath d='M6.8 10.6h6.4M6.8 13.4h6.4' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="css/loader.css">
+  </head>
+  <body>
+    <script src="js/core/loader.js"></script>
+    <link rel="stylesheet" href="css/breeze.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/motion.css">
+    <div id="app" class="app"></div>
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+    <noscript>
+      <div class="nojs">
+        <div class="nojs-dialog" role="alertdialog" aria-labelledby="nojs-title">
+          <div class="nojs-head">ECB Simulator: crash report</div>
+          <div class="nojs-body">
+            <svg class="nojs-icon" viewBox="0 0 22 22" aria-hidden="true"><path fill="currentColor" d="M 3 3 L 3 19 L 4 19 L 19 19 L 19 18 L 19 3 L 18 3 L 4 3 L 3 3 z M 4 4 L 18 4 L 18 18 L 4 18 L 4 4 z M 5 5 L 5 6 L 6 6 L 6 5 L 5 5 z M 6 6 L 6 8 L 8 8 L 8 6 L 6 6 z M 8 6 L 9 6 L 9 5 L 8 5 L 8 6 z M 8 8 L 8 9 L 9 9 L 9 8 L 8 8 z M 6 8 L 5 8 L 5 9 L 6 9 L 6 8 z M 13 5 L 13 6 L 14 6 L 14 5 L 13 5 z M 14 6 L 14 8 L 16 8 L 16 6 L 14 6 z M 16 6 L 17 6 L 17 5 L 16 5 L 16 6 z M 16 8 L 16 9 L 17 9 L 17 8 L 16 8 z M 14 8 L 13 8 L 13 9 L 14 9 L 14 8 z M 9 11 L 9 13 L 13 13 L 13 11 L 9 11 z M 13 13 L 13 15 L 15 15 L 15 13 L 13 13 z M 15 15 L 15 17 L 17 17 L 17 15 L 15 15 z M 9 13 L 7 13 L 7 15 L 9 15 L 9 13 z M 7 15 L 5 15 L 5 17 L 7 17 L 7 15 z"/></svg>
+            <div>
+              <h1 id="nojs-title">The euro area economy has collapsed</h1>
+              <p>The president of the European Central Bank sat down to read the year's briefing, but the office computer would not run it: JavaScript is turned off. With no one at the controls, the Governing Council could not meet, markets panicked, spreads ran out of control and the economy collapsed.</p>
+              <p>To restore order, turn on JavaScript in your browser's settings and reload the page. The game runs entirely in your browser and sends nothing anywhere.</p>
+            </div>
+          </div>
+          <div class="nojs-foot">
+            <a class="btn primary" href="">Restart the economy</a>
+          </div>
+        </div>
+      </div>
+    </noscript>
+    <script src="js/core/i18n.js"></script>
+    <script src="js/lang/en.js"></script>
+    <script src="js/core/events.js"></script>
+    <script src="js/core/storage.js"></script>
+    <script src="js/audio/sound.js"></script>
+    <script src="js/data/music/music.js"></script>
+    <script src="js/data/music/european/eurocrisis.js"></script>
+    <script src="js/data/music/european/draghi.js"></script>
+    <script src="js/data/music/european/troika.js"></script>
+    <script src="js/data/music/european/superbad.js"></script>
+    <script src="js/data/music/european/bankrupt.js"></script>
+    <script src="js/data/music/european/ode.js"></script>
+    <script src="js/data/music/european/finally.js"></script>
+    <script src="js/data/music/european/october.js"></script>
+    <script src="js/data/music/european/kremlin.js"></script>
+    <script src="js/data/music/european/strasbourg.js"></script>
+    <script src="js/data/music/european/popular.js"></script>
+    <script src="js/data/music/european/social.js"></script>
+    <script src="js/data/music/european/renew.js"></script>
+    <script src="js/data/music/european/green.js"></script>
+    <script src="js/data/music/european/conservative.js"></script>
+    <script src="js/data/music/european/patriot.js"></script>
+    <script src="js/data/music/european/sovereign.js"></script>
+    <script src="js/data/music/european/left.js"></script>
+    <script src="js/data/music/resistance/bella-ciao.js"></script>
+    <script src="js/data/music/resistance/internationale.js"></script>
+    <script src="js/data/music/resistance/bandiera-rossa.js"></script>
+    <script src="js/data/music/resistance/warszawianka.js"></script>
+    <script src="js/data/music/resistance/le-temps-des-cerises.js"></script>
+    <script src="js/audio/music.js"></script>
+    <script src="js/ui/icons.js"></script>
+    <script src="js/data/countries.js"></script>
+    <script src="js/data/history.js"></script>
+    <script src="js/data/flows.js"></script>
+    <script src="js/data/instruments.js"></script>
+    <script src="js/data/proposals.js"></script>
+    <script src="js/data/advisors.js"></script>
+    <script src="js/data/glossary.js"></script>
+    <script src="js/data/notes.js"></script>
+    <script src="js/data/help.js"></script>
+    <script src="js/data/names.js"></script>
+    <script src="js/data/people.js"></script>
+    <script src="js/data/rules.js"></script>
+    <script src="js/data/map.js"></script>
+    <script src="js/core/theme.js"></script>
+    <script src="js/core/wrap.js"></script>
+    <script src="js/core/dom.js"></script>
+    <script src="js/model/model.js"></script>
+    <script src="js/model/council.js"></script>
+    <script src="js/model/advisors.js"></script>
+    <script src="js/model/game.js"></script>
+    <script src="js/model/auto.js"></script>
+    <script src="js/model/achievements.js"></script>
+    <script src="js/data/cards-common.js"></script>
+    <script src="js/data/cards-pre.js"></script>
+    <script src="js/data/cards-later.js"></script>
+    <script src="js/ui/chart.js"></script>
+    <script src="js/ui/shell.js"></script>
+    <script src="js/ui/map.js"></script>
+    <script src="js/ui/views/agenda.js"></script>
+    <script src="js/ui/views/other.js"></script>
+    <script src="js/ui/start.js"></script>
+    <script src="js/ui/title.js"></script>
+    <script src="js/ui/dialogs.js"></script>
+    <script src="js/ui/achievements.js"></script>
+    <script src="js/ui/cinema.js"></script>
+    <script src="js/ui/finale.js"></script>
+    <script src="js/ui/keys.js"></script>
+    <script src="js/ui/tour.js"></script>
+    <script src="js/dev/debug.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

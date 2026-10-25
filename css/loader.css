@@ -1,0 +1,292 @@
+/* The loading screen (js/core/loader.js). It loads before the game's own
+   stylesheets, so it has the Breeze colors and the game's text sizes
+   itself: 14px text, 17px with large text, the title at Kirigami's first
+   heading level and the secondary lines in the small font. */
+@font-face {
+  font-family: "Noto Sans";
+  src: url("../vendor/noto-sans/NotoSans-Variable.woff2") format("woff2");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Hack, the fixed-width font of Plasma, kept in vendor/hack/ under the MIT
+   and Bitstream Vera licenses. A font of the page's own, since Firefox's
+   fingerprinting protection blocks named system fonts. */
+@font-face {
+  font-family: "Hack";
+  src: url("../vendor/hack/hack-regular-subset.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Hack";
+  src: url("../vendor/hack/hack-bold-subset.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+html {
+  font-size: 14px;
+}
+
+:root[data-size="large"] {
+  font-size: 17px;
+}
+
+.loader {
+  --l-window: #eff0f1;
+  --l-view: #ffffff;
+  --l-text: #232629;
+  --l-dim: #707d8a;
+  --l-frame: rgba(35, 38, 41, 0.2);
+  --l-frame-soft: rgba(35, 38, 41, 0.1);
+  --l-header: #dee0e2;
+  --l-accent: var(--accent, #3daee9);
+  --l-negative: #da4453;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 15px;
+  font-family: "Noto Sans", sans-serif;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--l-text);
+  background: var(--l-window);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .loader {
+    --l-window: #202326;
+    --l-view: #141618;
+    --l-text: #fcfcfc;
+    --l-dim: #a1a9b1;
+    --l-frame: rgba(252, 252, 252, 0.2);
+    --l-frame-soft: rgba(252, 252, 252, 0.1);
+    --l-header: #292c30;
+  }
+}
+
+:root[data-theme="dark"] .loader {
+  --l-window: #202326;
+  --l-view: #141618;
+  --l-text: #fcfcfc;
+  --l-dim: #a1a9b1;
+  --l-frame: rgba(252, 252, 252, 0.2);
+  --l-frame-soft: rgba(252, 252, 252, 0.1);
+  --l-header: #292c30;
+}
+
+.loader.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.loader.gone {
+  opacity: 0;
+}
+
+/* The window: a Breeze dialog, with its header strip, its body on the
+   view color and a footer strip under a line */
+.loader-win {
+  display: flex;
+  flex-direction: column;
+  width: min(480px, 100%);
+  overflow: hidden;
+  background: var(--l-window);
+  border: 1px solid var(--l-frame);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.loader-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  min-height: 32px;
+  font-weight: 600;
+  background: var(--l-header);
+  border-bottom: 1px solid var(--l-frame-soft);
+}
+
+.loader-head-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.loader-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  text-align: center;
+  background: var(--l-view);
+}
+
+.loader-logo {
+  width: 48px;
+  height: 48px;
+  color: var(--l-text);
+}
+
+.loader h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+/* A Breeze progress bar: a thin groove, filled with the accent */
+.loader-bar {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  background: var(--l-frame);
+  border-radius: 3px;
+}
+
+.loader-bar > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--l-accent);
+  border-radius: 3px;
+  transition: width 0.2s;
+}
+
+/* Before the page knows how many files follow, a strip moves along the bar */
+.loader-bar.unknown > span {
+  width: 30%;
+  transition: none;
+  animation: loader-strip 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes loader-strip {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(233%);
+  }
+}
+
+.loader p {
+  margin: 0;
+}
+
+/* The file loading now, in Hack when it has arrived, as in the debug panel */
+.loader-file {
+  font-family: "Hack", monospace;
+  overflow-wrap: anywhere;
+}
+
+.loader-count {
+  font-size: 0.857rem;
+  color: var(--l-dim);
+}
+
+/* A failure: a box tinted with Breeze's negative color, with a line of it
+   round the box, the error icon, the file and the Reload button, as KDE
+   draws an inline error message */
+.loader-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  background: color-mix(in srgb, var(--l-negative) 12%, var(--l-view));
+  border: 1px solid color-mix(in srgb, var(--l-negative) 60%, transparent);
+  border-radius: 3px;
+}
+
+.loader-error-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--l-negative);
+}
+
+.loader-error-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.loader-error-file {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.loader-reload {
+  padding: 5px 15px;
+  font: inherit;
+  color: var(--l-text);
+  background: var(--l-view);
+  border: 1px solid var(--l-frame);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* The tip, at the foot of the window: the information icon centered on
+   its first line, as in a KDE message */
+.loader-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 15px;
+  text-align: left;
+  border-top: 1px solid var(--l-frame-soft);
+}
+
+.loader-tip-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--l-text);
+}
+
+.loader-tip-text span.in {
+  animation: loader-tip 0.5s ease-out;
+}
+
+@keyframes loader-tip {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) .loader,
+  :root:not([data-motion="full"]) .loader-bar > span {
+    transition: none;
+  }
+
+  :root:not([data-motion="full"]) .loader-tip-text span.in,
+  :root:not([data-motion="full"]) .loader-bar.unknown > span {
+    animation: none;
+  }
+}
+
+:root[data-motion="reduce"] .loader,
+:root[data-motion="reduce"] .loader-bar > span {
+  transition: none;
+}
+
+:root[data-motion="reduce"] .loader-tip-text span.in {
+  animation: none;
+}
+
+/* Without motion the strip stands still */
+:root[data-motion="reduce"] .loader-bar.unknown > span {
+  animation: none;
+}

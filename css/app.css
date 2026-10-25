@@ -1,0 +1,4937 @@
+/*
+ * The application window: title bar, toolbar, sidebar, indicator bar, views,
+ * status bar, dialogs, the map, footnotes and the debug panel. On narrow
+ * screens the sidebar becomes a bottom navigation bar.
+ */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+/* The window fills the visible screen down to its lower edge, also on
+   phones whose browser bars come and go */
+.app {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Without JavaScript: a KDE crash dialog over the whole window */
+.nojs {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-nojs);
+  display: grid;
+  place-items: center;
+  padding: var(--gap);
+  background: var(--window);
+}
+
+.nojs-dialog {
+  width: min(560px, 100%);
+  overflow: hidden;
+  background: var(--view);
+  border: 1px solid var(--frame);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+
+.nojs-head {
+  padding: var(--gap-s);
+  font-weight: 600;
+  background: var(--header);
+  border-bottom: 1px solid var(--frame-soft);
+}
+
+.nojs-body {
+  display: flex;
+  gap: var(--gap);
+  padding: var(--gap);
+}
+
+.nojs-icon {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  color: var(--text);
+}
+
+.nojs-body h1 {
+  margin: 0 0 0.5em;
+  font-size: var(--fs-lead);
+}
+
+.nojs-body p:last-child {
+  margin-bottom: 0;
+}
+
+.nojs-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--gap-s);
+  border-top: 1px solid var(--frame-soft);
+}
+
+.nojs-foot .btn {
+  text-decoration: none;
+}
+
+/* The loading text sits in the middle of the window */
+/* ---------- Title bar and toolbar ---------- */
+
+/* Text for screen readers only. Full clip + negative margin so Firefox
+   and others allocate no layout space. */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* The landmark around the title bar and the toolbar adds no box */
+.app-head {
+  display: contents;
+}
+
+.page:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  min-height: 32px;
+  padding: 0 var(--gap-s);
+  font-weight: 600;
+  background: var(--header);
+  border-bottom: 1px solid var(--frame-soft);
+}
+
+.titlebar .logo {
+  width: 20px;
+  height: 20px;
+  color: var(--text);
+}
+
+/* Settings > Appearance > Logo: the euro sign in the accent color */
+.logo-accent .titlebar .logo,
+.logo-accent .hero .logo {
+  color: var(--accent);
+}
+
+.titlebar .sub {
+  overflow: hidden;
+  font-weight: 400;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-dim);
+}
+
+/* After a reload, until the game is clicked (js/ui/shell.js) */
+.titlebar .unfocused {
+  margin-left: auto;
+  cursor: default;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--neutral) 18%, transparent);
+}
+
+.titlebar .unfocused:not([hidden]) ~ .tag {
+  margin-left: 0;
+}
+
+.titlebar .tag {
+  margin-left: auto;
+  padding: 1px var(--gap-s);
+  font-family: inherit;
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--negative);
+  border: 1px solid var(--negative);
+  border-radius: 10px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--gap-xs);
+  padding: var(--gap-xs) var(--gap-s);
+  overflow-x: auto;
+  background: var(--header);
+  border-bottom: 1px solid var(--frame);
+  scrollbar-width: none;
+}
+
+.toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.toolbar .sep {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  margin: var(--gap-xs);
+  background: var(--frame);
+}
+
+/* A toolbar too narrow for its labels (js/ui/shell.js, fitToolbar), as on
+   a tablet held upright: the buttons that can collapse show their icon
+   alone, square, as on a phone, and End year keeps its label */
+.toolbar.tight .btn.collapse .lbl {
+  display: none;
+}
+
+.toolbar.tight .btn.collapse {
+  width: var(--btn-square);
+  padding: 0;
+}
+
+/* The phone's menu of toolbar actions shows only on a phone */
+.toolbar .tool-menu {
+  display: none;
+}
+
+.popover.tool-pop {
+  min-width: 220px;
+}
+
+/* The phone's toolbar menu floats at the right edge under the toolbar, as
+   More floats above the tabs */
+.popover.menu-down {
+  right: 8px;
+}
+
+.toolbar .spacer {
+  flex: 1;
+}
+
+.toolbar .btn {
+  white-space: nowrap;
+}
+
+/* ---------- Sidebar and view ---------- */
+
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 2px;
+  width: 210px;
+  padding: var(--gap-xs);
+  overflow-y: auto;
+  background: var(--window);
+  border-right: 1px solid var(--frame-soft);
+}
+
+.sideitem {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  width: 100%;
+  min-height: 36px;
+  padding: var(--gap-xs) var(--gap-s);
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.sideitem:hover {
+  background: var(--hover);
+}
+
+.sideitem[aria-current="page"] {
+  color: var(--on-accent);
+  background: var(--selected);
+}
+
+/* The number of items left: a pill of its own height, whatever the text
+   trimming of the label beside it */
+.sideitem .count {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  margin-left: auto;
+  padding: 0 var(--gap-xs);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+.sideitem[aria-current="page"] .count {
+  background: color-mix(in srgb, var(--on-accent) 25%, transparent);
+}
+
+.sidehead {
+  padding: var(--gap-s) var(--gap-s) 2px;
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+  background: var(--view);
+}
+
+/* The page fills the area beside the sidebar, as a KDE application's
+   page fills its window */
+.page {
+  flex: 1 0 auto;
+  padding: var(--gap);
+}
+
+/* Two width limits, each with a switch and a width in Settings >
+   Appearance. The page limit keeps the content at a readable width in the
+   middle of the page area (on by default); the window limit puts the
+   whole game in a full-height column in the middle of the screen, as web
+   applications do (off by default). */
+:root[data-page="limit"] .page {
+  padding-right: max(15px, calc((100% - var(--page-max, 1200px)) / 2));
+  padding-left: max(15px, calc((100% - var(--page-max, 1200px)) / 2));
+}
+
+/* Accountant mode (Settings > Appearance, on by default): beside the
+   sidebar the page drops the readable width and starts at the sidebar's
+   edge, so figures can be read against the sidebar and the indicators */
+@media (min-width: 600px) {
+  :root[data-page="limit"][data-accountant="on"]:not(.no-game) .page {
+    padding-right: var(--gap);
+    padding-left: var(--gap);
+  }
+}
+
+:root[data-frame="window"] body {
+  background: color-mix(in srgb, var(--text) 10%, var(--window));
+}
+
+:root[data-frame="window"] .app {
+  right: max(0px, calc((100vw - var(--window-max, 1440px)) / 2));
+  left: max(0px, calc((100vw - var(--window-max, 1440px)) / 2));
+  background: var(--window);
+  box-shadow: var(--shadow);
+}
+
+/* A view's title row: the title, a note and an action, over a line; it
+   scrolls with the page */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-xs) var(--gap-s);
+  margin-bottom: var(--gap);
+  /* Measured: with the button setting the row's height, 17px puts as much
+     space under the title as above it */
+  padding-bottom: var(--gap);
+  border-bottom: 1px solid var(--frame-soft);
+}
+
+.page-head h1 {
+  margin: 0;
+}
+
+.section {
+  margin-top: var(--gap);
+}
+
+/* ---------- Indicator bar ---------- */
+
+/* The indicators: one flat strip, its figures parted by thin lines. They
+   scroll away with the page or, by Settings > Appearance > Indicators,
+   stay at its top */
+.indicators {
+  display: flex;
+  flex: none;
+  overflow-x: auto;
+  background: var(--view-alt);
+  border-bottom: 1px solid var(--frame-soft);
+  scrollbar-width: thin;
+}
+
+:root[data-indicators="sticky"] .indicators {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+/* A card is never narrower than its text */
+.ind {
+  display: flex;
+  flex: 1 0 112px;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--gap-s);
+  min-width: fit-content;
+  padding: var(--gap-s) var(--gap);
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--frame-soft);
+  cursor: pointer;
+}
+
+.ind:last-child {
+  border-right: 0;
+}
+
+.ind:hover {
+  background: var(--hover);
+}
+
+/* A block, so its text can be trimmed to the capitals; the warning icon
+   sits inline before the label */
+.ind .k {
+  font-size: var(--fs-small);
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
+.ind .v {
+  font-size: var(--fs-lead);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ind .d {
+  margin-left: var(--gap-xs);
+  font-size: var(--fs-small);
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+.ind.alert {
+  box-shadow: inset 0 -2px 0 var(--negative);
+}
+
+.ind .k > .icon {
+  margin-right: var(--gap-xs);
+  vertical-align: -3px;
+}
+
+.ind.alert .k {
+  color: var(--negative);
+}
+
+/* The sidebar's foot: what a status bar would say, on a desktop. The
+   president first, then one label and figure a line */
+.side-foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  margin-top: auto;
+  padding: var(--gap-s) var(--gap-s) var(--gap-xs);
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+  border-top: 1px solid var(--frame-soft);
+}
+
+.side-foot b {
+  color: var(--text);
+}
+
+/* The song of the easter egg, playing in the status bar */
+.egg-player {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  color: var(--text);
+}
+
+.side-foot .egg-player {
+  padding-top: var(--gap-xs);
+  border-top: 1px solid var(--frame-soft);
+}
+
+.egg-player .btn {
+  margin-left: auto;
+}
+
+.egg-player .btn + .btn {
+  margin-left: 0;
+}
+
+/* The speaker before the name opens the song's volume */
+.egg-player .btn.vol-btn {
+  margin-left: 0;
+}
+
+/* The song's volume: a vertical bar, the level above it */
+.vol-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+.vol-bar input[type="range"] {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 24px;
+  max-width: none;
+  height: 120px;
+}
+
+.vol-bar input[type="range"]::-webkit-slider-runnable-track {
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to top, var(--accent) var(--fill, 50%), var(--track) var(--fill, 50%));
+}
+
+.vol-bar input[type="range"]::-webkit-slider-thumb {
+  margin-top: 0;
+  margin-left: -7px;
+}
+
+.vol-bar input[type="range"]::-moz-range-track {
+  width: 4px;
+  height: 100%;
+}
+
+.vol-bar input[type="range"]::-moz-range-progress {
+  width: 4px;
+}
+
+/* The player controls keep to the height of a line of the status */
+.egg-player .btn.icon-only {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  padding: 0;
+}
+
+.egg-player .pause-btn.icon-only {
+  width: 14px;
+  height: 14px;
+}
+
+.egg-player .btn .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.egg-player .pause-btn .icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* The bar's text scrolls sideways when it is longer than the bar; the
+   player stays at the right edge above it, with its buttons in reach */
+.statusbar .egg-player {
+  position: sticky;
+  right: 0;
+  flex: none;
+  margin-left: auto;
+  padding-left: var(--gap-s);
+  background: var(--window);
+}
+
+.statusbar > span {
+  flex: none;
+}
+
+.statusbar .egg-player .btn {
+  margin-left: 0;
+}
+
+/* The president's name, and the state in parentheses at the right, as the
+   figures below sit at the right */
+.side-who {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap-s);
+}
+
+/* A long name ends in an ellipsis; its tooltip gives it in full */
+.side-who > b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-who > span {
+  flex: none;
+  max-width: 60%;
+  text-align: right;
+}
+
+.side-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+}
+
+.side-kv > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-s);
+}
+
+/* A label too long for the sidebar stays on one line and ends in an
+   ellipsis; its tooltip shows it whole (js/ui/shell.js) */
+.side-kv dt {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-kv dd {
+  flex: none;
+}
+
+.side-kv dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* ---------- Status bar ---------- */
+
+/* Settings > Appearance > Status: on a desktop the president, the year
+   and the backstop sit in the sidebar's foot (the default) or in a bar at
+   the bottom; phones always keep the bar above the tabs */
+@media (min-width: 600px) {
+  :root:not([data-status="bar"]) .app > .statusbar {
+    display: none;
+  }
+
+  :root[data-status="bar"] .side-foot {
+    display: none;
+  }
+}
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  min-height: 26px;
+  padding: var(--gap-xs) var(--gap-s);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  font-size: var(--fs-small);
+  white-space: nowrap;
+  color: var(--text-dim);
+  background: var(--window);
+  border-top: 1px solid var(--frame-soft);
+}
+
+.statusbar::-webkit-scrollbar {
+  display: none;
+}
+
+.statusbar b {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.bottomnav {
+  display: none;
+}
+
+/* ---------- Agenda ---------- */
+
+.agenda {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  align-items: start;
+  gap: var(--gap);
+}
+
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}
+
+.aitem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-s);
+  width: 100%;
+  padding: var(--gap-s);
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: var(--view);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.aitem:hover {
+  border-color: var(--accent);
+}
+
+.aitem[aria-current="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.aitem .st {
+  display: grid;
+  place-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  font-size: var(--fs-small);
+  border: 1px solid var(--frame);
+  border-radius: 50%;
+}
+
+.aitem.done .st {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.aitem.rejected .st {
+  color: var(--on-accent);
+  background: var(--negative);
+  border-color: var(--negative);
+}
+
+.aitem .t {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.aitem .a {
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+/* The rate set for the year, in the title of its decided card */
+.card h2 .rate-pill {
+  font-size: var(--fs-small);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  vertical-align: 2px;
+}
+
+/* The card is a column with even gaps; its children have no margins of their own */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+}
+
+.card > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.card .meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-s);
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+/* The card's text runs to the same edge as its options, for an even column */
+.card .text {
+}
+
+/* "In history" as Kirigami's inline message of the information kind: a
+   tinted, rounded box with an icon */
+/* The icon in the middle of the text beside it, the text in the middle of the box */
+.histbox {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  padding: var(--gap-s);
+  background: color-mix(in srgb, var(--accent) 10%, var(--view));
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: var(--radius);
+}
+
+/* The information mark is Breeze's one-color icon, in the text color */
+.histbox > .icon {
+  flex: none;
+  color: var(--text);
+}
+
+.histbox b {
+  font-weight: 600;
+}
+
+/* Options sit in two columns where the card is wide enough, so a whole
+   decision fits in view; on a phone they stack */
+/* The options of a card; S.tile fills every row, as for rows of cards */
+.options {
+  --tile-min: 320px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min), 1fr));
+  gap: var(--gap-s);
+}
+
+.opt {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-s);
+  width: 100%;
+  padding: var(--gap-s);
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: var(--view);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.opt:hover {
+  border-color: var(--accent);
+}
+
+/* The chosen option: a soft tint of the accent and a thin accent line, as
+   Breeze marks a selected item */
+.opt.checked {
+  background: color-mix(in srgb, var(--accent) 12%, var(--view));
+  border-color: var(--accent);
+}
+
+.opt.disabled {
+  opacity: 0.6;
+  border-style: dashed;
+  cursor: default;
+}
+
+.opt .letter {
+  display: grid;
+  place-content: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font: inherit;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--frame);
+  border-radius: 50%;
+  cursor: inherit;
+}
+
+.opt .letter:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.opt.checked .letter {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.opt .body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  min-width: 0;
+}
+
+.opt .l {
+  font-weight: 600;
+}
+
+.opt .x {
+}
+
+.opt .tags .badge {
+  white-space: normal;
+}
+
+.opt .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-xs);
+}
+
+.opt .law {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  font-size: var(--fs-small);
+  color: var(--negative);
+}
+
+.decide-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.result {
+  padding: var(--gap-s);
+  background: var(--view-alt);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.result > * {
+  margin: 0;
+}
+
+.result > * + * {
+  margin-top: var(--gap-s);
+}
+
+/* ---------- Footnotes ---------- */
+
+.fnref {
+  padding: 0 1px;
+  font: inherit;
+  font-size: 0.72em;
+  font-weight: 600;
+  line-height: 1;
+  vertical-align: super;
+  color: var(--link);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.fnref:hover {
+  text-decoration: underline;
+}
+
+.notes {
+  padding-top: var(--gap-s);
+  border-top: 1px solid var(--frame-soft);
+}
+
+/* On the page the notes open with the same line as the divider above */
+.page > .notes {
+  margin-top: var(--gap);
+  padding-top: var(--gap);
+}
+
+.notes h4 {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  margin: var(--gap-xs) 0;
+}
+
+.notes ol {
+  margin: 0;
+  padding-left: 1.6em;
+}
+
+.notes li {
+  padding: 2px var(--gap-xs);
+  border-radius: var(--radius);
+}
+
+.notes li.flash {
+  background: var(--hover);
+}
+
+.notes li b {
+  font-weight: 600;
+}
+
+/* ---------- Advisors on a card ---------- */
+
+.advice-head {
+  font-size: var(--fs-body);
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+.advice-head .btn,
+.notes h4 .btn {
+  min-height: 26px;
+  margin-left: auto;
+  padding: 2px var(--gap-s);
+  font-weight: 400;
+}
+
+.advice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--gap-s);
+}
+
+.adv {
+  padding: var(--gap-s);
+  background: var(--view-alt);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.adv .who {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  margin-bottom: var(--gap-xs);
+}
+
+.avatar {
+  display: grid;
+  place-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--on-accent);
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.adv .rec {
+  font-weight: 600;
+}
+
+.adv .fc {
+  margin-top: var(--gap-xs);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Council vote ---------- */
+
+.vote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-xs);
+}
+
+.vote .dot {
+  display: grid;
+  place-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  background: var(--view);
+  border: 1px solid var(--frame);
+  border-radius: 50%;
+}
+
+.vote .dot.board {
+  width: auto;
+  min-width: 22px;
+  padding: 0 var(--gap-xs);
+  border-radius: 999px;
+}
+
+.vote .dot.yes {
+  color: var(--on-accent);
+  background: var(--positive);
+  border-color: var(--positive);
+}
+
+.vote .dot.no {
+  color: var(--on-accent);
+  background: var(--negative);
+  border-color: var(--negative);
+}
+
+.vote .dot.pres {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* ---------- Initiatives ---------- */
+
+/* A subtle line between parts of a page, with the same space on each side */
+.divider {
+  height: 0;
+  margin: var(--gap) 0;
+  border: 0;
+  border-top: 1px solid var(--frame-soft);
+}
+
+.divider + * {
+  margin-top: 0;
+}
+
+.initiatives {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+}
+
+.initiatives > * {
+  margin: 0;
+}
+
+.init-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.init-row.switches {
+  column-gap: var(--gap);
+}
+
+/* All settings ends the row of quick switches at its far right */
+.init-row.switches .all-settings {
+  margin-left: auto;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--gap-s) var(--gap);
+  align-self: stretch;
+}
+
+.quick-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+.quick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap-s);
+}
+
+.quick > * {
+  margin: 0;
+}
+
+.start-foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}
+
+.start-foot .guided {
+  margin-left: auto;
+}
+
+.start > .start-back {
+  align-self: flex-start;
+}
+
+.pick-count {
+  margin-top: var(--gap-s);
+}
+
+/* ---------- Layout helpers for the views ---------- */
+
+/* A card in a row of cards: its parts spaced evenly, and its state, such
+   as a proposal's support or a bloc's relation, at the foot of the card,
+   so every card in the row ends at the same line */
+.group.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+}
+
+.group.stack > * {
+  margin: 0;
+}
+
+/* A bloc's name, with its help button at the far right of the box */
+.bloc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-xs);
+}
+
+.bloc-head h4 {
+  margin: 0;
+}
+
+/* A square button with a question mark */
+.bloc-head .help-q {
+  flex: none;
+  width: var(--btn-square-s);
+  min-width: 0;
+  height: var(--btn-square-s);
+  min-height: 0;
+  padding: 0;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* The foot takes the free space above it, so it sits at the card's bottom */
+.group.stack > .card-foot {
+  margin-top: auto;
+}
+
+.card-foot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  margin-top: auto;
+  padding-top: var(--gap-s);
+  border-top: 1px solid var(--frame-soft);
+}
+
+.group.stack .card-foot > * {
+  margin: 0;
+}
+
+/* Rows of cards: a card is at least 200px wide, and the row keeps 15px
+   from what follows it; S.tile in js/core/dom.js fills every row */
+.grid2 {
+  --tile-min: 200px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--tile-min), 1fr));
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+
+.grid3 {
+  --tile-min: 200px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--tile-min), 1fr));
+  gap: var(--gap);
+  margin-bottom: var(--gap);
+}
+
+/* A row of cards followed by a heading, as in Your advisors and Other
+   schools: 10px below the cards, so the heading's own margin sets the space
+   and the heading sits evenly between the rows */
+.grid2:has(+ h3),
+.grid3:has(+ h3) {
+  margin-bottom: var(--gap-s);
+}
+
+.bar {
+  display: flex;
+  height: 22px;
+  overflow: hidden;
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  border-right: 2px solid var(--view);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-xs) var(--gap-s);
+  margin-top: var(--gap-xs);
+  font-size: var(--fs-small);
+}
+
+.legend .sw {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: var(--gap-xs);
+  vertical-align: -1px;
+  border-radius: 2px;
+}
+
+.stance {
+  position: relative;
+  flex: none;
+  width: 90px;
+  height: 8px;
+  border-radius: var(--radius);
+  background: linear-gradient(to right, color-mix(in srgb, var(--series-run) 60%, transparent), color-mix(in srgb, var(--text) 15%, transparent), color-mix(in srgb, var(--series-record) 60%, transparent));
+}
+
+.stance i {
+  position: absolute;
+  top: -3px;
+  width: 4px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--text);
+}
+
+.stance-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-s);
+  margin-bottom: var(--gap-s);
+}
+
+.tabs .btn[aria-selected="true"] {
+  color: var(--on-accent);
+  background: var(--selected);
+  border-color: var(--accent);
+}
+
+.advcard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  padding: var(--gap);
+  background: var(--view);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.advcard > * {
+  margin: 0;
+}
+
+/* A card's footer: a strip of its own under a line, at the bottom of the
+   card, as KDE's cards set their actions apart */
+.advcard > .advfoot {
+  margin: auto calc(-1 * var(--gap)) calc(-1 * var(--gap));
+  padding: var(--gap-s) var(--gap);
+  background: var(--view-alt);
+  border-top: 1px solid var(--frame-soft);
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.advfoot > .appoint {
+  margin: 0;
+}
+
+/* The seat list keeps the advisor's whole name. Appoint sits beside it
+   while both fit; otherwise it moves under the list and takes the full
+   width. On a shared line the list takes nearly all the free space (its
+   grow factor is far larger), so Appoint keeps its own width there */
+.advcard .appoint select {
+  flex: 1000 0 auto;
+  max-width: 100%;
+}
+
+.advcard .appoint .btn {
+  flex: 1 0 auto;
+}
+
+.advcard.seated {
+  border-color: var(--accent);
+}
+
+.advcard .who {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.advcard .avatar {
+  width: 32px;
+  height: 32px;
+}
+
+/* A term over its definition, and a wider space before the next term */
+.glossary dt {
+  margin: 0 0 2px;
+  font-weight: 600;
+}
+
+.glossary dd {
+  margin: 0 0 var(--gap-s);
+}
+
+/* ---------- Map ---------- */
+
+.map-box {
+  margin-bottom: var(--gap);
+}
+
+/* An action at the end of a page's heading row */
+.page-head .head-action {
+  align-self: center;
+  margin-left: auto;
+}
+
+.page-head .head-action + .head-action {
+  margin-left: 0;
+}
+
+.map-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-s);
+  margin-bottom: var(--gap-s);
+}
+
+/* A double tap does not zoom the map, so quick taps on a phone each select
+   a state, as quick clicks do */
+.map {
+  position: relative;
+  overflow: hidden;
+  background: var(--map-sea);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+  touch-action: manipulation;
+}
+
+/* Smaller map and charts (the Countries heading row): the map at most
+   720px wide, the charts in a block of at most 760px. A phone's map and
+   charts are small already, so the choice applies from 600px. */
+@media (min-width: 600px) {
+  :root[data-compact="on"] .map {
+    max-width: 720px;
+  }
+
+  :root[data-compact="on"] .chart-grid {
+    --tile-min: 220px;
+    max-width: 760px;
+  }
+}
+
+.map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.map .land {
+  fill: var(--map-land);
+  stroke: var(--map-sea);
+  stroke-width: 0.6;
+}
+
+.map .st {
+  stroke: var(--map-sea);
+  stroke-width: 0.8;
+  cursor: pointer;
+}
+
+.map .st:focus-visible {
+  outline: none;
+}
+
+.map .ring {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* Flows: colors mixed from the theme's own, so both themes follow */
+.map-box {
+  --flow-in: color-mix(in srgb, var(--positive) 55%, var(--map-land));
+  --flow-out: color-mix(in srgb, var(--negative) 55%, var(--map-land));
+  --flow-line: var(--accent);
+  --map-member-soft: color-mix(in srgb, var(--text) 18%, var(--map-land));
+}
+
+.map .flow {
+  fill: none;
+  stroke: var(--flow-line);
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.map .flow:hover {
+  opacity: 1;
+}
+
+.map .flow-head {
+  fill: var(--flow-line);
+}
+
+.map .flow-origin {
+  fill: var(--flow-line);
+  stroke: var(--view);
+  stroke-width: 2;
+}
+
+.flows {
+  margin-top: var(--gap-s);
+}
+
+.th-sort {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-align: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.th-sort[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+.map .code {
+  font-size: var(--fs-chart);
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+  fill: var(--text);
+  paint-order: stroke;
+  stroke: var(--map-sea);
+  stroke-width: 3px;
+}
+
+.map .tiny {
+  stroke: var(--map-sea);
+  stroke-width: 1;
+}
+
+/* ---------- Charts ---------- */
+
+.chart {
+  width: 100%;
+}
+
+/* A state's charts in a grid: each scales to its column */
+.chart-grid {
+  --tile-min: 360px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-min), 1fr));
+  gap: var(--gap);
+}
+
+.chart-grid > .chart {
+  margin: 0;
+}
+
+.chart > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart .grid line {
+  stroke: var(--frame-soft);
+  stroke-width: 1;
+}
+
+.chart .axis text {
+  font-size: var(--fs-chart);
+  fill: var(--text-dim);
+}
+
+.chart .run {
+  fill: none;
+  stroke: var(--series-run);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart .rec {
+  fill: none;
+  stroke: var(--series-record);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  stroke-linejoin: round;
+}
+
+.chart .lab {
+  font-size: var(--fs-chart);
+  fill: var(--text);
+}
+
+.chart .cross {
+  stroke: var(--text-dim);
+  stroke-width: 1;
+}
+
+.chart .now {
+  fill: var(--series-run);
+  stroke: var(--view);
+  stroke-width: 2;
+}
+
+.chart .hit {
+  fill: transparent;
+}
+
+.chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-s);
+}
+
+.chart-head h4 {
+  margin: 0;
+}
+
+/* The source line of a popover sits a little apart from the figures */
+.popover .src {
+  margin-top: var(--gap-xs);
+}
+
+.chart-tip {
+  pointer-events: none;
+}
+
+.map-tip h4 {
+  margin-bottom: 2px;
+}
+
+.map-tip .divider {
+  margin: var(--gap-xs) 0;
+}
+
+/* The figures of a state: a small table with no rules, the numbers in
+   their own aligned columns */
+.map-figs {
+  width: 100%;
+  margin-top: 3px;
+  font-size: var(--fs-small);
+}
+
+.map-figs td {
+  padding: 1px 0;
+  border: 0;
+}
+
+.map-figs td + td {
+  padding-left: 12px;
+}
+
+.map-figs tr.on td {
+  font-weight: 600;
+}
+
+.map-figs .chg {
+  color: var(--text-dim);
+}
+
+.map-figs td.num {
+  text-align: right;
+}
+
+/* ---------- Dialogs ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+  display: grid;
+  place-items: center;
+  padding: var(--gap);
+  background: var(--scrim);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+  color: var(--text);
+  background: var(--window);
+  border: 1px solid var(--frame);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+
+/* Settings > Appearance > Dialogs, off: a dialog grows with its contents,
+   and the layer behind it scrolls */
+/* A block layer, so its padding stays below the dialog when it scrolls;
+   the dialog clips its corners without becoming a scroll box, so the
+   settings categories can stay at the top */
+:root[data-dialogs="grow"] .overlay {
+  display: block;
+  overflow-y: auto;
+}
+
+:root[data-dialogs="grow"] .dialog,
+:root[data-dialogs="grow"] .settings {
+  max-height: none;
+}
+
+:root[data-dialogs="grow"] .dialog {
+  margin: 0 auto;
+  overflow: clip;
+}
+
+:root[data-dialogs="grow"] .settings .pane {
+  overflow: visible;
+}
+
+/* Settings needs room for its categories and one column of rows */
+.dialog.settings-dialog {
+  width: min(760px, 100%);
+}
+
+.dialog.wide {
+  width: min(980px, 100%);
+}
+
+.dhead {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  padding: var(--gap-xs) var(--gap-s);
+  font-weight: 600;
+  background: var(--header);
+  border-bottom: 1px solid var(--frame-soft);
+}
+
+.dbody > .slide-in {
+  animation: pop-slide-in 0.18s ease-out;
+}
+
+.dbody > .slide-back {
+  animation: pop-slide-back 0.18s ease-out;
+}
+
+/* A closing dialog lets clicks through at once, so the first click after
+   it lands where the player aims */
+.overlay.closing {
+  pointer-events: none;
+  animation: overlay-out 0.16s ease-in forwards;
+}
+
+.overlay.closing .dialog {
+  animation: dialog-out 0.16s ease-in forwards;
+}
+
+@keyframes overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.dhead .x {
+  margin-left: auto;
+}
+
+.dbody {
+  padding: var(--gap);
+  overflow-y: auto;
+  background: var(--view);
+}
+
+.dbody.flush {
+  padding: 0;
+}
+
+/* Settings: the page scrolls, not the dialog's body, which shares the
+   window's color in case it shows */
+.settings-dialog .dbody {
+  background: var(--window);
+}
+
+/* Help reads on the view color beside its contents, in the settings
+   dialog's width */
+.settings.help-doc .pane {
+  display: block;
+  background: var(--view);
+}
+
+.help-list {
+  padding-left: 1.2em;
+}
+
+.help-list li + li {
+  margin-top: var(--gap-xs);
+}
+
+.dfoot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--gap-s);
+  padding: var(--gap-s);
+  border-top: 1px solid var(--frame-soft);
+}
+
+/* Actions of the dialog stand at the left of its foot, up to this one;
+   the buttons that close it stay at the right */
+.dfoot > .foot-split {
+  margin-right: auto;
+}
+
+/* Saves, as a joined list. The headings keep their standard margins; the
+   first one sits flush with the dialog's padding, as the flush edges of
+   css/breeze.css set for other boxes. */
+.save-section:first-child > h3 {
+  margin-top: 0;
+}
+
+/* A line parts New save from the list of saves, with the dialog's padding
+   above and below it */
+.save-section + .save-section {
+  margin-top: var(--gap);
+  padding-top: var(--gap);
+  border-top: 1px solid var(--frame-soft);
+}
+
+.save-new,
+.save-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.save-name {
+  display: flex;
+  flex: 1 1 220px;
+}
+
+.save-name input {
+  flex: 1;
+  min-width: 0;
+}
+
+.save-tools {
+  margin-bottom: var(--gap);
+}
+
+.save-sort,
+.save-order {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.save-order {
+  gap: var(--gap-s) var(--gap);
+}
+
+/* Import and Select keep to the right of the sorting */
+/* Selection, as on a phone: a bar above the list with the check box for
+   all, the count, the actions on the saves chosen and Cancel. It stays in
+   sight at the top of the dialog's scrolling body. */
+.select-bar {
+  position: sticky;
+  top: calc(-1 * var(--gap));
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-s);
+  margin: 0 calc(-1 * var(--gap)) var(--gap);
+  padding: 0 var(--gap) var(--gap-s);
+  border-bottom: 1px solid var(--frame-soft);
+  background: var(--view);
+}
+
+.select-count {
+  flex: 1;
+  font-weight: 600;
+}
+
+.slot.picking {
+  cursor: pointer;
+}
+
+.slot.picking > input[type="checkbox"] {
+  flex: none;
+  margin: 0;
+}
+
+.slot.picked {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* The marks of a save open their details */
+button.badge {
+  cursor: pointer;
+  font-family: inherit;
+  line-height: inherit;
+}
+
+.badge.mark-debug {
+  color: var(--negative);
+  border-color: currentColor;
+}
+
+/* A long list of debug changes scrolls inside the popover, which keeps
+   its size; the list takes the focus so it scrolls by keyboard too */
+.mark-list {
+  max-height: min(240px, 40vh);
+  margin: var(--gap-xs) 0 0;
+  padding-left: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* In the import's confirmation, the choice for a game kept here sits under it */
+.import-match {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap-xs);
+  margin-top: var(--gap-xs);
+}
+
+.save-group > h4 > .group-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-s);
+  font: inherit;
+}
+
+/* A group of saves: its heading has the same space above and below */
+.save-group > h4 {
+  margin: var(--gap-s) 0;
+}
+
+.save-group:first-child > h4 {
+  margin-top: 0;
+}
+
+.slots {
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  min-height: 52px;
+  padding: var(--gap-s);
+}
+
+.slot + .slot {
+  border-top: 1px solid var(--frame-soft);
+}
+
+/* The save of the game in progress stands out a little */
+.slot.mine {
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.slot-info {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The name, then the ID in the monospace font, then a tag */
+.slot-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-xs) var(--gap-s);
+  font-weight: 600;
+}
+
+.slot-name > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.slot-id {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+.slot-info .nowrap {
+  white-space: nowrap;
+}
+
+.slot-acts,
+.slot-tools {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+/* A line parts the saves from the note under them, with the dialog's
+   padding above and below it, as under New save */
+.slots-note {
+  margin: var(--gap) 0 0;
+  padding-top: var(--gap);
+  border-top: 1px solid var(--frame-soft);
+}
+
+.popover.menu-up {
+  right: 8px;
+  bottom: 58px;
+  min-width: 220px;
+}
+
+/* Settings: categories on the left, the page on the right. The dialog
+   keeps one size whichever category is open, as in KDE's settings dialogs */
+/* The line between the categories and the page is drawn on the whole, so
+   the categories can stay at the top while a long page scrolls past them */
+.settings {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-height: min(420px, calc(100dvh - 100px));
+  max-height: calc(100dvh - 100px);
+  background: linear-gradient(to right, var(--window) 199px, var(--frame-soft) 199px, var(--frame-soft) 200px, transparent 200px), var(--window);
+}
+
+.settings .cats {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  gap: 2px;
+  margin-right: 1px;
+  padding: var(--gap-xs);
+  background: var(--window);
+}
+
+/* The page of a category is one grid: every row's label sits in the first
+   column, as wide as the longest label, and every control in the second,
+   so all controls start at the same line */
+.settings .pane {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-content: start;
+  column-gap: var(--gap);
+  /* Each row as tall as its content: a row that scrolls sideways, such
+     as the tabs, would otherwise shrink to nothing in Firefox when the
+     page is taller than its window */
+  grid-auto-rows: max-content;
+  padding: var(--gap);
+  overflow-y: auto;
+  background: var(--window);
+}
+
+.settings .pane > * {
+  grid-column: 1 / -1;
+}
+
+.settings .pane > .row {
+  grid-template-columns: subgrid;
+}
+
+/* The page's heading, 10px above what follows */
+.settings .pane > h3 {
+  margin: 0 0 var(--gap-s);
+}
+
+/* A card group: a titled card per subject on the window's color, as in
+   KDE's settings pages. Its rows share the pane's label column. */
+.setgroup {
+  display: grid;
+  grid-template-columns: subgrid;
+  align-content: start;
+  margin-bottom: var(--gap);
+  padding: 0 var(--gap);
+  background: var(--view);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+/* A titled card: its title stands above it, as KDE's form headers stand
+   above their cards, and the two make one section. The title follows
+   the headings of the groups of saves: at the left edge, 10px above and
+   below it, none above the first. */
+.setblock {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-content: start;
+}
+
+.setblock > * {
+  grid-column: 1 / -1;
+}
+
+.setblock > h4 {
+  margin: var(--gap-s) 0;
+}
+
+.setblock:first-child > h4,
+.settings .pane > h3.sr-only + .setblock > h4 {
+  margin-top: 0;
+}
+
+/* A card or a warning before a titled card leaves the space to its title */
+.settings .pane > :is(.setgroup, .set-warn):has(+ .setblock) {
+  margin-bottom: 0;
+}
+
+/* Settings as a table: a dotted line parts each setting from the next.
+   Each row and note is a cell with 8px above and below it that reaches
+   the card's sides; the card has no padding above or below them. A note
+   at the foot of a card has a line above it too. */
+.settings .setgroup > :is(.row, p, .set-cell) {
+  margin: 0 calc(-1 * var(--gap));
+  padding: var(--gap-xs-readable) var(--gap);
+}
+
+.settings .setgroup > :is(.row, p) + .row,
+.settings .setgroup > :not(p) + p:last-child {
+  border-top: var(--rule);
+}
+
+/* A note keeps to what it explains, so no large gap parts them: a note
+   under a setting has no space above it, and a note that opens a card,
+   before its first setting, has none below it and no line under it. A
+   note at the foot of a card keeps its line and its space. */
+.settings .setgroup > .row + p:not(:last-child) {
+  padding-top: 0;
+}
+
+.settings .setgroup > p:first-child:has(+ .row) {
+  padding-bottom: 0;
+}
+
+.settings .setgroup > p:first-child + .row {
+  border-top: 0;
+}
+
+/* Without the guide lines (Settings > Appearance > Dialogs) the cells'
+   own 8px keep the settings apart */
+:root[data-guides="off"] .settings .setgroup > :is(.row, p) + .row,
+:root[data-guides="off"] .settings .setgroup > :not(p) + p:last-child {
+  border-top: 0;
+}
+
+/* The boxes of the key bindings, last in their card, keep the card's
+   side padding, 15px, below them */
+.settings .setgroup > .keyareas:last-child {
+  padding-bottom: var(--gap);
+}
+
+/* Long setting labels wrap instead of squeezing controls; phones keep
+   the full width of their stacked rows */
+@media (min-width: 600px) {
+  .settings .pane .row > .lbl {
+    max-width: 130px;
+  }
+}
+
+/* On a phone a label stands over its control, with 5px more under it */
+@media (max-width: 599px) {
+  .settings .setgroup > .row > .lbl {
+    margin-bottom: var(--gap-xs);
+  }
+}
+
+.setgroup:last-child {
+  margin-bottom: 0;
+}
+
+/* The hover color keeps to the card's rounded corners */
+.setgroup > .set-menu:first-child > .set-menu-item:first-child {
+  border-radius: calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+}
+
+.setgroup > .set-menu:last-child > .set-menu-item:last-child {
+  border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
+}
+
+.setgroup > * {
+  grid-column: 1 / -1;
+}
+
+.setgroup > .row {
+  grid-template-columns: subgrid;
+}
+
+/* A list of sub-pages, as KDE's settings list them: a row each, with its
+   name, a line under it, and an arrow; a row opens its page */
+.set-menu {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(-1 * var(--gap));
+}
+
+.set-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  padding: var(--gap-s) var(--gap);
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.set-menu-item + .set-menu-item {
+  border-top: var(--rule);
+}
+
+.set-menu-item:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.set-menu-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* The head of a sub-page, as in the notes: the 26px back button 5px
+   from the page's name, both moved 5px left so the arrow lines up with
+   the card below, 10px under it */
+.set-head {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  margin: 0 0 var(--gap-s) calc(-1 * var(--gap-xs));
+}
+
+.set-head > :is(h3, h4) {
+  margin: 0;
+}
+
+/* A note in a group keeps the rows' own space below it */
+.setgroup > p {
+  margin-bottom: var(--gap-xs);
+}
+
+.setgroup > .row:last-child,
+.setgroup > p:last-child {
+  margin-bottom: 0;
+}
+
+/* The game settings: the settings page without its list of categories */
+.settings.solo {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  background: var(--window);
+}
+
+/* A settings row: the label in one column, the control in the other, so
+   every control starts at the same edge */
+.row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--gap-xs) var(--gap);
+  min-height: 36px;
+  margin-bottom: var(--gap-xs);
+}
+
+/* A lone button keeps its own width in a settings row */
+/* Several controls in one settings row, one under the other */
+.stack-ctl {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap-s);
+}
+
+/* A list beside a switch, such as the cards in a row under Fill every
+   row, reaches across the control's column */
+.stack-ctl > select {
+  align-self: stretch;
+}
+
+/* A list of check boxes: each line is tall enough to tap, so no gap */
+.stack-ctl.checks {
+  gap: 0;
+}
+
+.row > .btn {
+  justify-self: start;
+}
+
+.row > .lbl {
+  color: var(--text-dim);
+}
+
+/* Why a setting cannot apply now, under its control */
+.row > .why {
+  grid-column: -2 / -1;
+}
+
+.limit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}
+
+.limit-out {
+  min-width: 56px;
+  text-align: right;
+}
+
+/* A level slider and its Test button stay on one line */
+.level {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--gap-s);
+  min-width: 0;
+}
+
+.level input[type="range"] {
+  flex: 1;
+  max-width: none;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid var(--view);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--frame);
+  cursor: pointer;
+}
+
+.swatch[aria-checked="true"] {
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+/* A warning inside the settings, such as two storage choices that conflict */
+.set-warn {
+  margin: var(--gap-s) 0;
+  padding: var(--gap-s);
+  background: color-mix(in srgb, var(--negative) 8%, var(--view));
+  border-left: 3px solid var(--negative);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.set-warn > :last-child {
+  margin-bottom: 0;
+}
+
+/* A warning at the top of a page starts at the page's padding */
+.set-warn:first-child {
+  margin-top: 0;
+}
+
+/* Warnings straight on a settings page keep the gap of the groups, 15px,
+   below each */
+.settings .pane > .set-warn {
+  margin: 0 0 var(--gap);
+}
+
+/* A caution, such as a game changed by the debug tools: the same box in
+   Breeze's yellow (--caution), its line on the left included */
+.set-warn.caution {
+  background: color-mix(in srgb, var(--caution) 14%, var(--view));
+  border-left-color: var(--caution);
+}
+
+.json {
+  margin: var(--gap-xs) 0;
+  padding: var(--gap-s);
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: var(--view-alt);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+/* ---------- Start screen ---------- */
+
+.start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.start > * {
+  margin: 0;
+}
+
+.fold > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--fs-lead);
+}
+
+.fold[open] > summary {
+  margin-bottom: var(--gap-s);
+}
+
+.fold > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- Title screen ---------- */
+
+/* It fills the page area, past the readable width, with its name and
+   menu in the middle */
+:root .main > .page:has(> .title-screen) {
+  display: flex;
+  padding: 0;
+}
+
+.title-screen {
+  position: relative;
+  display: grid;
+  flex: 1;
+  place-items: center;
+  overflow: hidden;
+}
+
+.title-pan {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat, no-repeat;
+  background-size: 120px 120px, cover;
+}
+
+.title-mid {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-s);
+  padding: var(--gap-l);
+  text-align: center;
+}
+
+.title-badge {
+  position: relative;
+}
+
+.title-logo {
+  display: block;
+  width: 80px;
+  height: 80px;
+  color: var(--accent);
+}
+
+.title-name {
+  position: relative;
+}
+
+.title-name h1 {
+  margin: 0;
+  font-size: var(--fs-display);
+}
+
+.title-mid p {
+  margin: 0;
+  color: var(--text-dim);
+}
+
+/* The menu under the name: one button a line, all as wide as the widest */
+.title-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--gap-s);
+  width: min(360px, 100%);
+  margin-top: var(--gap-s);
+}
+
+.title-menu .btn {
+  justify-content: center;
+  min-height: 40px;
+}
+
+/* On a card, the name and the menu stand apart from the backdrop */
+.title-mid.card {
+  color: var(--text);
+  background: var(--view);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* After all game data is deleted: the mark in the secondary color */
+.title-screen.deleted .title-logo {
+  color: var(--text-dim);
+}
+
+/* Its heading takes no margin of its own: the column's gap spaces it */
+.title-screen.deleted h1 {
+  margin: 0;
+}
+
+/* A theme: white letters on its colors, the logo in gold */
+.title-screen.themed {
+  color: var(--title-ink);
+}
+
+.themed .title-logo {
+  color: var(--title-gold);
+}
+
+.themed .title-name h1 {
+  text-shadow: var(--title-shadow);
+}
+
+.themed .title-mid p {
+  color: var(--title-ink-dim);
+}
+
+/* Off a card, the menu's buttons are solid on the backdrop, so it never
+   shows through them: the first in gold, the others in the theme's own
+   deep color with white letters */
+.themed .title-mid:not(.card) .title-menu .btn {
+  color: var(--title-ink);
+  background: var(--t-to);
+  border-color: var(--title-line);
+}
+
+.themed .title-mid:not(.card) .title-menu .btn:hover {
+  background: var(--t-from);
+}
+
+.themed .title-mid:not(.card) .title-menu .btn.primary {
+  color: var(--on-gold);
+  background: var(--title-gold);
+  border-color: var(--title-gold-edge);
+}
+
+.themed .title-mid:not(.card) .title-menu .btn.primary:hover {
+  background: var(--title-gold-hover);
+}
+
+.themed .title-mid:not(.card) .title-menu .btn:focus-visible {
+  outline: 2px solid var(--title-ink);
+  outline-offset: 2px;
+}
+
+/* On a card the theme keeps its gold, and the text the window's colors */
+.themed .title-mid.card .title-name h1 {
+  text-shadow: none;
+}
+
+.themed .title-mid.card p {
+  color: var(--text-dim);
+}
+
+.themed .title-mid.card .title-logo {
+  color: var(--title-gold-card);
+}
+
+.title-mid.card .splash {
+  color: var(--splash-card);
+  text-shadow: 1px 1px 0 var(--splash-card-shadow);
+}
+
+/* The yellow line starts above the logo's upper right and runs down to
+   the right of it, at 36 degrees */
+.splash {
+  position: absolute;
+  top: -38%;
+  left: 58%;
+  font-size: var(--fs-lead);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--splash);
+  text-shadow: 2px 2px 0 var(--splash-shadow);
+  transform: translateY(-50%) rotate(36deg);
+  transform-origin: left center;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.hero .logo {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  color: var(--text);
+}
+
+.hero h1 {
+  margin: 0;
+}
+
+.hero p {
+  margin: var(--gap-xs) 0 0;
+}
+
+.choice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--gap-s);
+}
+
+.choice label,
+.advpick label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-s);
+  padding: var(--gap-s);
+  background: var(--view);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+}
+
+/* The label's gap already spaces the radio or check box from its text */
+/* The custom difficulty's four values, under the choice of level */
+/* A sound's pitch and Play, after its volume and reset, as a piece's Play */
+.snd-extra {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+/* A field with buttons at its right end, inside its frame, as the seed
+   of the sound set has: the frame goes round both, 32px high, and shows
+   the focus of the field; the buttons are 26px, 2px from the frame, and
+   the text keeps a field's 11px from the left edge */
+.field-in {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: var(--control);
+  padding: 2px;
+  background: var(--view);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+}
+
+.field-in:has(> input:focus) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.field-in > input {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 8px;
+  background: none;
+  border: 0;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.field-in > input:focus {
+  box-shadow: none;
+}
+
+.field-in > input::-webkit-inner-spin-button,
+.field-in > input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.field-in > .btn {
+  width: 26px;
+  height: 26px;
+  min-height: 26px;
+}
+
+.field-in > .btn:disabled {
+  border-color: transparent;
+}
+
+/* A line between groups of buttons in a field */
+.field-in > .sep {
+  align-self: stretch;
+  width: 1px;
+  margin: var(--gap-xs) 2px;
+  background: var(--frame-soft);
+}
+
+.field-in:has(> input:disabled) {
+  opacity: 0.45;
+}
+
+.field-in:has(> input:disabled) > .btn:disabled {
+  opacity: 1;
+}
+
+/* The four values of a custom difficulty: a block each, side by side
+   where there is room. A block has its name, its share of Normal and the
+   reset on one line, the slider at full width, and what it does. */
+.levers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--gap) 20px;
+}
+
+.lever {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  min-width: 0;
+}
+
+.lever-head {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.lever-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.lever-out {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+/* The slider takes the block's width, past the usual 260px limit */
+.lever > input[type="range"] {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.lever > p {
+  margin: 0;
+}
+
+/* In a settings group the blocks keep the gap of the rows above them */
+.setgroup > .levers {
+  margin: var(--gap-xs) 0 var(--gap-s);
+}
+
+.custom-diff {
+  margin-top: var(--gap);
+}
+
+/* What the game hides and EU enlargement, under the difficulty. Each
+   heading has the same space above and below it. */
+.enlarge,
+.hides {
+  margin-top: var(--gap);
+}
+
+.enlarge > h3,
+.hides > h3 {
+  margin: 0 0 var(--gap);
+}
+
+.enlarge > p {
+  margin: 0 0 var(--gap-s);
+}
+
+.hides > p {
+  margin: var(--gap-s) 0 0;
+}
+
+.choice label > input,
+.advpick label > input {
+  margin: 0;
+}
+
+.choice label:has(input:checked),
+.advpick label:has(input:checked) {
+  background: color-mix(in srgb, var(--accent) 12%, var(--view));
+  border-color: var(--accent);
+}
+
+.advpick {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--gap-s);
+}
+
+.advpick label {
+  padding: var(--gap-s);
+}
+
+/* A search box takes the width of its row on every screen */
+.search {
+  width: 100%;
+}
+
+.glossary-tools {
+  display: flex;
+  gap: var(--gap-s);
+}
+
+.glossary-tools .search {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The glossary's categories, each under its heading, the basics
+   first. A heading has the same space above and below it: the gap
+   between two categories equals the gap under each heading. */
+/* The categories sit under the search bar at the same gap as between two categories */
+.glossary-cats {
+  margin-top: var(--gap);
+}
+
+.glossary-cat + .glossary-cat {
+  margin-top: var(--gap);
+}
+
+.glossary-cat > h3 {
+  margin: 0 0 var(--gap);
+}
+
+.glossary-cat > .glossary {
+  margin-top: 0;
+}
+
+/* The first child of each of these boxes keeps no top margin and the last
+   no bottom margin, so their own padding and gaps alone set the spacing */
+.glossary-cat > :first-child,
+.keyarea > :first-child,
+.setgroup > :first-child {
+  margin-top: 0;
+}
+
+.glossary-cat > :last-child,
+.glossary-cat .glossary > dd:last-child,
+.keyarea > :last-child,
+.setgroup > :last-child {
+  margin-bottom: 0;
+}
+
+/* On a phone the search takes a line of its own, the two lists the next */
+@media (max-width: 599px) {
+  .glossary-tools {
+    flex-wrap: wrap;
+  }
+
+  .glossary-tools .search {
+    flex-basis: 100%;
+  }
+
+  .glossary-tools select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Achievements: a card each, the earned ones in the text color and the
+   locked ones dimmed */
+.awards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--gap-s);
+}
+
+.award {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-s);
+  padding: var(--gap-s);
+  background: var(--view);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+  opacity: 0.55;
+}
+
+.award.earned {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+.award-name {
+  font-weight: 600;
+}
+
+/* An empty state, as Kirigami's placeholder message: an icon and a line
+   in the middle of the space */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-s);
+  padding: var(--gap);
+  text-align: center;
+  color: var(--text-dim);
+}
+
+.placeholder .icon {
+  width: 32px;
+  height: 32px;
+  opacity: 0.6;
+}
+
+/* The president's name field, with its two tools inside at the right end */
+.name-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}
+
+.name-field > label {
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+.field-tools {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-tools input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 64px;
+}
+
+/* The field has the height of a button (32px); its tools are square
+   flat buttons of the size that fits inside it, as a search field's clear
+   button, with the small icons */
+.field-tools input {
+  min-height: var(--control);
+}
+
+.field-tools .in-field {
+  position: absolute;
+  top: 50%;
+  width: 26px;
+  min-height: 26px;
+  height: 26px;
+  padding: 0;
+  transform: translateY(-50%);
+}
+
+.field-tools .in-field .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.field-tools .in-field:nth-of-type(1) {
+  right: 32px;
+}
+
+.field-tools .in-field:nth-of-type(2) {
+  right: 3px;
+}
+
+.field-tools .in-field[aria-expanded="true"] {
+  color: var(--accent);
+}
+
+.letter-pad {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  padding: var(--gap-s);
+  background: var(--view-alt);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.letter-pad .init-row {
+  margin: 0;
+}
+
+.letter-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-xs);
+}
+
+.letter-key {
+  min-width: 36px;
+  justify-content: center;
+  padding-right: 8px;
+  padding-left: 8px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--gap-s) var(--gap);
+}
+
+.form-grid > label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+.field-label {
+  margin-bottom: var(--gap-xs);
+}
+
+/* ---------- Ending ---------- */
+
+.grades {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--gap-s);
+}
+
+.grade {
+  padding: var(--gap-s);
+  background: var(--view-alt);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.grade .L {
+  font-size: var(--fs-screen);
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---------- Toasts ---------- */
+
+/* While the ending film plays, notifications wait out of view */
+body:has(.cine) .toasts {
+  visibility: hidden;
+}
+
+/* Notifications sit just above whatever ends the window: the status bar
+   when there is one, the tabs on a phone */
+.toasts {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  max-width: min(380px, calc(100vw - 32px));
+}
+
+:root[data-status="bar"] .toasts {
+  bottom: 40px;
+}
+
+/* A notification as KDE draws one: an icon in the text color, its shape
+   telling the kind, centered on the first line of the text */
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-s);
+  padding: var(--gap-s);
+  background: var(--tooltip);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.toast > .icon {
+  margin-top: 2px;
+  color: var(--text);
+}
+
+.toast-text {
+  flex: 1;
+}
+
+.toast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-xs);
+  margin-top: var(--gap-xs);
+}
+
+/* ---------- Achievement notices ---------- */
+
+.award-pops {
+  position: fixed;
+  right: var(--gap);
+  bottom: var(--gap);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  width: min(340px, calc(100vw - 2 * var(--gap)));
+}
+
+:root[data-status="bar"] .award-pops {
+  bottom: 40px;
+}
+
+.award-pop {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  width: 100%;
+  padding: var(--gap-s);
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: var(--view);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  animation: award-in 0.3s ease-out;
+}
+
+.award-pop:hover {
+  border-color: var(--accent);
+}
+
+.award-pop.leaving {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.award-tile {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  color: var(--on-accent);
+  background: var(--accent);
+  border-radius: var(--radius);
+}
+
+.award-tile .icon {
+  width: 28px;
+  height: 28px;
+}
+
+.award-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.award-kicker {
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+.award-name {
+  font-weight: 600;
+}
+
+@keyframes award-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (max-width: 599px) {
+  .award-pops,
+  :root[data-status="bar"] .award-pops {
+    top: var(--gap);
+    bottom: auto;
+  }
+}
+
+/* ---------- Turn transition ---------- */
+
+/* The year transition is a wall: a click during it reaches nothing under it */
+
+.yearfx {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-yearfx);
+  display: grid;
+  place-items: center;
+}
+
+.yearfx .y {
+  font-size: var(--fs-year);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  text-shadow: 0 2px 20px color-mix(in srgb, var(--view) 70%, transparent);
+}
+
+/* ---------- Tour ---------- */
+
+/* During the tour the page cannot be scrolled by hand (js/ui/tour.js) */
+.touring .main,
+.touring .agenda-list {
+  overflow: hidden;
+}
+
+.coach-hole {
+  position: fixed;
+  z-index: var(--z-coach);
+  border-radius: 6px;
+  outline: 2px solid var(--accent);
+  box-shadow: 0 0 0 4000px var(--scrim-tour);
+  pointer-events: none;
+}
+
+.coach {
+  position: fixed;
+  z-index: calc(var(--z-coach) + 1);
+  width: min(340px, calc(100vw - 32px));
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  padding: var(--gap-s);
+  background: var(--window);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+}
+
+.coach .foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--gap-s);
+  margin-top: var(--gap-s);
+}
+
+/* ---------- Glossary links ---------- */
+
+.term {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+/* Key caps inside a line of text stand on its spaces alone */
+.opt-keys .kbd {
+  margin-left: 0;
+}
+
+/* A term with the punctuation that touches it, on one line */
+.term-hold {
+  white-space: nowrap;
+}
+
+.term:hover {
+  color: var(--link);
+}
+
+/* ---------- Debug panel ---------- */
+
+/* An ending screen (the crash screen, the end screens of the periods and
+   the films) takes the whole window: the debug panel and the Debug tag
+   stay out of it, and come back when it closes */
+:root:has(.crash, .cine) :is(.dbg, #debug-tag) {
+  display: none;
+}
+
+.dbg {
+  position: fixed;
+  top: 90px;
+  right: 16px;
+  z-index: var(--z-debug);
+  display: flex;
+  flex-direction: column;
+  width: min(400px, calc(100vw - 32px));
+  /* Resizing stops at 300 by 160px, 55% of the screen wide and 70% high, so
+     the panel never covers most of the game; a small screen keeps the
+     minimum and a margin */
+  min-width: min(300px, calc(100vw - 16px));
+  min-height: 160px;
+  max-width: min(calc(100vw - 16px), max(300px, 55vw));
+  max-height: min(calc(100dvh - 16px), max(160px, 70dvh));
+  overflow: hidden;
+  font-size: var(--fs-small);
+  background: var(--window);
+  border: 1px solid var(--negative);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  resize: both;
+  container-type: inline-size;
+}
+
+.dbg-head {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+  padding: var(--gap-xs) var(--gap-xs) var(--gap-xs) var(--gap-s);
+  font-weight: 600;
+  background: var(--header);
+  border-bottom: 1px solid var(--frame-soft);
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+
+.dbg-head .btn {
+  margin-left: auto;
+}
+
+.dbg-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0 var(--dbg-gap);
+  overflow-y: auto;
+}
+
+/* Without a game the message sits in the middle of the panel */
+.dbg-body > .placeholder {
+  flex: 1;
+  justify-content: center;
+}
+
+/* The tabs, held at the top of the panel while a tab scrolls */
+.dbg-top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 calc(-1 * var(--dbg-gap));
+  background: var(--window);
+}
+
+/* Tabs in place of one long scroll, as game debug overlays have */
+.dbg-tabs {
+  display: flex;
+  overflow-x: auto;
+  padding: 0 var(--gap-xs);
+  border-bottom: 1px solid var(--frame-soft);
+}
+
+.dbg-tab {
+  flex: none;
+  padding: var(--gap-xs) var(--gap-s);
+  font: inherit;
+  color: var(--text-dim);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.dbg-tab[aria-selected="true"] {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.dbg-sec-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dbg-gap);
+  padding: var(--dbg-gap) 0;
+}
+
+/* The time controls: groups with a small label, the same in the bar and
+   the panel */
+.dbg-time {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dbg-gap);
+}
+
+.dbg-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+.dbg-glabel {
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+}
+
+.dbg-time.at-panel {
+  flex-direction: column;
+}
+
+/* A group's label has the same space above it (the gap between groups)
+   and below it */
+.dbg-time.at-panel .dbg-glabel {
+  flex-basis: 100%;
+  margin-bottom: calc(var(--dbg-gap) - var(--gap-xs));
+}
+
+/* In the bar the groups sit in one row, parted by a line, and the bar
+   scrolls sideways when it is wider than the page */
+.dbg-time.at-bar {
+  flex-wrap: nowrap;
+}
+
+.dbg-time.at-bar .dbg-group {
+  flex-wrap: nowrap;
+}
+
+.dbg-time.at-bar .dbg-group + .dbg-group {
+  padding-left: var(--dbg-gap);
+  border-left: 1px solid var(--frame-soft);
+}
+
+/* A control that ends the period or the run: marked in the negative color,
+   with a warning icon, never looking like the safe ones */
+.btn.danger {
+  color: var(--negative);
+  border-color: color-mix(in srgb, var(--negative) 60%, var(--frame));
+}
+
+.btn.danger:hover {
+  border-color: var(--negative);
+}
+
+/* The debug bar above the agenda, framed in the Debug tag's red, in one
+   row that scrolls sideways whenever it is wider than the page */
+.dbg-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  align-items: center;
+  gap: var(--gap-xs) var(--gap-s);
+  margin-bottom: var(--gap);
+  padding: var(--gap-xs) var(--gap-s);
+  border: 1px dashed var(--negative);
+  border-radius: var(--radius);
+}
+
+.dbg-bar > * {
+  flex: none;
+}
+
+.dbg-bar-tag,
+.badge.debug-mark {
+  font-weight: 600;
+  color: var(--negative);
+}
+
+.dbg-year {
+  width: 90px;
+}
+
+/* The year report's table of figures, under the events; without events
+   it opens the report */
+.report-figures {
+  margin-top: var(--gap-s);
+}
+
+.report-figures:first-child {
+  margin-top: 0;
+}
+
+.report-events {
+  margin: 0;
+}
+
+/* A labeled row: the label in a column of its own, then the controls */
+.dbg-row {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--dbg-gap);
+}
+
+.dbg-lbl {
+  overflow: hidden;
+  font-size: var(--fs-small);
+  color: var(--text-dim);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dbg-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+/* A list fills the room its buttons leave; its smallest width, the
+   chosen label, is set by the panel's script. A row too narrow for both
+   moves the buttons to the next line */
+.dbg-ctl select {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Debug buttons have the game's size, the height of a list or a field,
+   and keep their full label on one line: a row that runs out of room
+   moves whole buttons to the next line, never squeezes them */
+.dbg-body .btn {
+  flex: none;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.dbg-bar .btn {
+  white-space: nowrap;
+}
+
+/* The controls of a row fill its width and share it evenly; one that
+   cannot fit beside the others moves to the next line and extends to
+   the full width */
+.dbg-body .dbg-ctl > *,
+.dbg-time.at-panel .dbg-group > :not(.dbg-glabel) {
+  flex: 1 1 0;
+}
+
+/* A switch with its label is a line of its own, only as tall as its text,
+   so the next group's label keeps its even space */
+.dbg-time.at-panel .dbg-group > .check {
+  flex-basis: 100%;
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* A touch screen keeps the switch tall enough to tap */
+@media (pointer: coarse) {
+  .dbg-time.at-panel .dbg-group > .check {
+    min-height: 30px;
+  }
+}
+
+/* A narrow panel puts each row's label above its controls, so the
+   controls have the full width */
+@container (max-width: 360px) {
+  .dbg-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}
+
+.dbg-kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--gap-s);
+  margin: 0;
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+}
+
+.dbg-kv dt {
+  font-family: var(--font);
+  color: var(--text-dim);
+}
+
+.dbg-kv dd {
+  margin: 0;
+}
+
+/* ---------- Narrow screens ---------- */
+
+/* Touch screens without a mouse have no keyboard to speak of and no
+   corner to drag, so the keyboard help and the debug panel's resize
+   corner give way */
+/* The medium window class (600 to 839px), as a tablet held upright or a
+   narrow window beside the sidebar: the agenda's items run
+   in a strip above the card, as on a phone, so the card keeps a readable
+   width, and the indicators wrap into full rows in place of running off
+   the edge */
+@media (min-width: 600px) and (max-width: 839px) {
+  .agenda {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .agenda-list {
+    flex-direction: row;
+    padding-bottom: var(--gap-xs);
+    overflow-x: auto;
+  }
+
+  .aitem {
+    min-width: 210px;
+  }
+
+  .indicators {
+    flex-wrap: wrap;
+  }
+
+  .ind {
+    flex-basis: 150px;
+    margin-bottom: -1px;
+    border-bottom: 1px solid var(--frame-soft);
+  }
+}
+
+/* Without a keyboard (js/core/dom.js, S.hasKeyboard), what only a
+   keyboard can use is hidden */
+.no-keyboard .keys-only {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .dbg {
+    resize: none;
+  }
+}
+
+@media (max-width: 599px) {
+  /* On a phone the buttons stay beside the save, in a column at the right:
+     Rename and Delete level with its name, Load or Overwrite under them,
+     beside its figures */
+  .slot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: var(--gap-xs) var(--gap-s);
+  }
+
+  .slot-info {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+  }
+
+  .slot-tools {
+    grid-row: 1;
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  .slot-acts {
+    grid-row: 2;
+    grid-column: 2;
+    justify-self: end;
+  }
+
+  /* While selecting, a row holds only its check box and the save */
+  .slot.picking {
+    display: flex;
+    align-items: center;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  /* Settings that act only beside the sidebar */
+  .desktop-only {
+    display: none;
+  }
+
+  .titlebar .sub {
+    display: none;
+  }
+
+  .toolbar {
+    gap: 2px;
+    padding: var(--gap-xs);
+  }
+
+  .toolbar .lbl {
+    display: none;
+  }
+
+  .toolbar .btn {
+    padding: var(--gap-xs);
+  }
+
+  /* A toolbar button whose label is hidden shows only its icon, so it is
+     square like every other icon button */
+  .toolbar .btn.collapse {
+    width: var(--btn-square);
+    padding: 0;
+  }
+
+  .toolbar .sep {
+    display: none;
+  }
+
+  /* End year at the left with its label; at the right the actions that
+     fit (js/ui/shell.js, fitToolbar), the sound and the menu, which holds
+     the other actions */
+  .toolbar .btn.in-menu {
+    display: none;
+  }
+
+  .toolbar .btn.in-menu.kept {
+    display: inline-flex;
+    order: 2;
+  }
+
+  .toolbar .spacer {
+    order: 1;
+  }
+
+  #sound-btn {
+    order: 3;
+  }
+
+  .toolbar .tool-menu {
+    display: inline-flex;
+    order: 4;
+  }
+
+  .toolbar.all-kept .tool-menu {
+    display: none;
+  }
+
+  .page {
+    padding: var(--gap-s) var(--gap) var(--gap);
+  }
+
+  .agenda {
+    grid-template-columns: 1fr;
+  }
+
+  .agenda-list {
+    flex-direction: row;
+    padding-bottom: var(--gap-xs);
+    overflow-x: auto;
+  }
+
+  .aitem {
+    min-width: 210px;
+  }
+
+  .ind {
+    flex: 1 0 100px;
+  }
+
+  th,
+  td {
+    padding: var(--gap-xs);
+  }
+
+  .bottomnav {
+    display: flex;
+    padding: 2px var(--gap-xs);
+    background: var(--window);
+    border-top: 1px solid var(--frame);
+  }
+
+  .bottomnav button {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    min-height: 48px;
+    padding: var(--gap-xs) 2px;
+    font: inherit;
+    font-size: var(--fs-small);
+    color: var(--text);
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  .bottomnav button[aria-current="page"] {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .toasts,
+  :root[data-status="bar"] .toasts {
+    right: 8px;
+    bottom: 92px;
+  }
+
+  .settings {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .settings {
+    background: var(--window);
+  }
+
+  .settings .cats {
+    margin-right: 0;
+    flex-direction: row;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--frame-soft);
+  }
+
+  .settings .cats .sideitem {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .row,
+  .settings .pane,
+  .settings .pane > .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .row {
+    row-gap: var(--gap-xs);
+    margin-bottom: var(--gap-s);
+  }
+
+  /* Stacked rows read evenly: each label stands 10px under the control
+     before it and 10px over its own, measured on what is drawn. Switches
+     and radio buttons drop the 30px line they keep on a desktop and trim
+     their text to the capitals and the baseline, as one-line controls
+     do, so their box is their ink */
+  .row > .lbl {
+    margin-bottom: var(--gap-xs);
+  }
+
+  .row :is(.switch, .check) {
+    min-height: 0;
+  }
+
+  .quick-field {
+    gap: var(--gap-s);
+  }
+
+  /* Each initiative on a phone: the list on its own line, the action
+     below it, and the information button at the right edge */
+  .initiatives .init-row select {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .initiatives .init-row .info {
+    margin-left: auto;
+  }
+
+  .initiatives .init-row + .init-row {
+    padding-top: var(--gap-s);
+    border-top: 1px solid var(--frame-soft);
+  }
+
+  .dbody {
+    padding: var(--gap-s);
+  }
+
+  /* A dialog with three buttons or more, such as the ending's, stacks
+     them, each the full width, so none is cut or left alone on a line */
+  .dfoot:has(> .btn:nth-child(3)) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dfoot:has(> .btn:nth-child(3)) > .foot-split {
+    margin-right: 0;
+  }
+
+  /* A heading row's action shows its icon alone, so it stays on the line
+     of the title; its name is in its tooltip and its label for screen
+     readers */
+  .page-head .head-action .lbl {
+    display: none;
+  }
+
+  .page-head .head-action {
+    width: var(--btn-square);
+    padding: 0;
+  }
+
+  /* The line under New save and the note under the saves keep the
+     dialog's padding as their distance, as on a desktop */
+  .save-section + .save-section {
+    margin-top: var(--gap-s);
+    padding-top: var(--gap-s);
+  }
+
+  .slots-note {
+    margin-top: var(--gap-s);
+    padding-top: var(--gap-s);
+  }
+
+  .dbg {
+    top: auto;
+    right: var(--dbg-gap);
+    bottom: 60px;
+    max-height: 60dvh;
+  }
+}
+
+/* ---------- Spacing after meters and bars ---------- */
+
+.meter + p,
+.meter + .small,
+.bar + .legend,
+p + .meter,
+.small + .meter {
+  margin-top: var(--gap-s);
+}
+
+/* Blocks that sit between paragraphs take the paragraph's space below */
+.grades,
+.init-row.block {
+  margin-bottom: 0.75em;
+}
+
+/* The list of kept data on the Storage page, as the list of the groups
+   of sounds: it fills its card, a dotted line parts the items, and each
+   has its name and a line under it, then View and Delete as icon buttons;
+   the contents open under the item */
+.kept-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(-1 * var(--gap));
+}
+
+.kept-item {
+  padding: var(--gap-s) var(--gap);
+}
+
+.kept-item + .kept-item {
+  border-top: var(--rule);
+}
+
+.kept-line {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+.kept-item > .json {
+  margin: var(--gap-s) 0 0;
+}
+
+/* Settings > Appearance > Notifications: the corner the notifications
+   open in, below the toolbar at the top or above the status bar and the
+   tabs at the bottom */
+:root[data-notify$="left"] .toasts {
+  right: auto;
+  left: 18px;
+}
+
+:root[data-notify^="top"] .toasts,
+:root[data-notify^="top"][data-status="bar"] .toasts {
+  top: 90px;
+  bottom: auto;
+}
+
+@media (max-width: 599px) {
+  :root[data-notify$="left"] .toasts {
+    left: 8px;
+  }
+
+  :root[data-notify^="top"] .toasts,
+  :root[data-notify^="top"][data-status="bar"] .toasts {
+    top: 100px;
+    bottom: auto;
+  }
+}
+
+/* The ending film (js/ui/cinema.js): dark whatever the theme, between two
+   black bars, its lines in the middle one after another */
+.cine {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-film);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding: var(--gap-l) var(--gap);
+  color: var(--on-crash);
+  background: radial-gradient(circle at 50% 45%, var(--cine-from), var(--cine-to));
+  animation: cine-in 1s ease-out both;
+}
+
+.cine.fed {
+  --cine-from: var(--fed);
+  --cine-to: var(--fed-deep);
+  --cine-ink: #ffcc00;
+}
+
+.cine.loans {
+  --cine-from: var(--finale);
+  --cine-to: var(--finale-deep);
+  --cine-ink: #dfe6ec;
+}
+
+.cine.over {
+  --cine-from: var(--crash);
+  --cine-to: var(--crash-deep);
+  --cine-ink: #ff9c9c;
+}
+
+.cine.closing {
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+/* Settings > Keyboard > Key bindings: one card an area (js/ui/dialogs.js),
+   each with a table whose columns keep the same widths, so the keys line
+   up from card to card; a key is a button shaped as a key cap, which reads
+   "Press a key" while it waits. The table sits flush in its card: the
+   card's padding is the only margin, as in the other groups. */
+.keymap {
+  table-layout: fixed;
+}
+
+.keymap col.c-key {
+  width: 8em;
+}
+
+.keymap col.c-undo {
+  width: 4.5em;
+}
+
+/* Reset all keys, under the note of the Key bindings box */
+.key-tools {
+  display: flex;
+  margin-top: var(--gap-s);
+}
+
+.setgroup > p + .key-tools,
+.setgroup > p[hidden] + .key-tools {
+  margin-top: 0;
+}
+
+/* The areas inside the Key bindings box: each a smaller box, all the
+   same distance apart, after the box's own rows */
+.keyareas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  margin-top: var(--gap);
+}
+
+.keyarea {
+  padding: var(--gap-s) var(--gap);
+  background: var(--window);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.keyarea > h5 {
+  margin: 0 0 var(--gap-xs);
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+
+.keymap tr:last-child td {
+  border-bottom: 0;
+}
+
+.keymap td:first-child {
+  padding-left: 0;
+}
+
+.keymap .btn.keycap {
+  min-width: 6em;
+  justify-content: center;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.keymap .btn.keycap.waiting {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.keymap .kbd {
+  display: inline-block;
+  min-width: 6em;
+  margin-left: 0;
+  text-align: center;
+}
+
+/* An area switched off dims its keys */
+.keyarea.off .keymap td {
+  opacity: 0.55;
+}
+
+/* The film and the time-lapse take the focus themselves (js/ui/cinema.js);
+   they need no ring */
+.cine:focus {
+  outline: none;
+}
+
+/* A click on the film, the time-lapse or an end screen goes nowhere, so
+   the cursor stays the plain arrow over them, text included; their
+   buttons keep their own */
+.cine,
+.crash {
+  cursor: default;
+}
+
+/* An ending's film, and the time-lapse, fade slowly into the ending's
+   screen under them */
+.cine.closing.lead {
+  transition-duration: 0.8s;
+}
+
+.cine-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: min(760px, 100%);
+  text-align: center;
+}
+
+/* Every line takes the same cell, so one fades into the next */
+/* Every shot fills the cell of the tallest, and its content stands in
+   the middle of it, so a single line sits as centered as a table. A shot
+   leaves first, drifting up as it fades; the next one rises into place
+   once the screen has mostly cleared, so the two never blur together. */
+.cine-shot {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--gap-s);
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s, transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s;
+  pointer-events: none;
+}
+
+.cine-shot.in {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.cine-shot.out {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.5s ease-in, transform 0.5s ease-in;
+}
+
+/* The opening: the place and the years, the president's name large, the
+   role, the euro area from start to end as two large figures under a short
+   line, and the presidents before */
+.cine-open {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.cine-open .cine-name {
+  margin: 0;
+  font-size: var(--fs-hero);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.cine-open .cine-role {
+  margin: 0;
+  font-size: var(--fs-lead);
+  color: var(--cine-ink);
+}
+
+.cine-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap) 50px;
+  margin-top: var(--gap-s);
+  padding-top: 25px;
+  border-top: 1px solid color-mix(in srgb, var(--on-crash) 25%, transparent);
+}
+
+.cine-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-xs);
+  min-width: 140px;
+}
+
+.cine-num {
+  font-size: var(--fs-number);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.cine-open .cine-note {
+  max-width: 36em;
+  margin: 0;
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--on-crash) 88%, transparent);
+}
+
+.cine-cap {
+  margin: 0;
+  font-size: var(--fs-small);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cine-ink);
+}
+
+.cine-line {
+  margin: 0;
+  font-size: var(--fs-title);
+  line-height: 1.4;
+}
+
+/* The film's tables: light lines on the dark, the heads in the ending's
+   own color, each area's letter large */
+.cine-table {
+  width: 100%;
+  font-size: var(--fs-body);
+  text-align: left;
+}
+
+.cine-table :is(th, td) {
+  padding: var(--gap-xs) var(--gap-s);
+  color: var(--on-crash);
+  border-bottom: 1px solid color-mix(in srgb, var(--on-crash) 18%, transparent);
+}
+
+.cine-table thead th,
+.cine-table tbody th {
+  font-weight: 600;
+  color: var(--cine-ink);
+}
+
+.cine-table thead th {
+  border-bottom-color: color-mix(in srgb, var(--on-crash) 40%, transparent);
+}
+
+.cine-table .letter-head {
+  text-align: center;
+}
+
+.cine-table .letter {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* The grades' table with the note on what the letters mean */
+.cine-grades {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap);
+  width: 100%;
+}
+
+.cine-grades .cine-note {
+  margin: 0;
+  color: color-mix(in srgb, var(--on-crash) 88%, transparent);
+}
+
+.cine-shot .table-wrap {
+  width: 100%;
+  margin: 0;
+}
+
+.cine-title h1 {
+  margin: 0;
+  font-size: var(--fs-hero);
+  font-weight: 600;
+}
+
+.cine-title .btn {
+  margin-top: var(--gap);
+}
+
+.cine-ring {
+  width: 140px;
+  height: 140px;
+  fill: var(--cine-ink);
+}
+
+/* The ledger of the last payment: the page, then each entry, then the
+   balance drawn twice under them, then the zero */
+.cine-ledger {
+  width: 140px;
+  height: 140px;
+  fill: none;
+  stroke: var(--cine-ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.cine-ledger path {
+  stroke-dasharray: 100;
+}
+
+.cine-ledger .page {
+  stroke-width: 1.5;
+  opacity: 0.6;
+}
+
+.cine-ledger .zero {
+  font-size: var(--fs-chart-m);
+  font-weight: 600;
+  fill: var(--on-crash);
+  stroke: none;
+}
+
+.cine-title.in .cine-ledger path {
+  animation: cine-draw 0.6s ease-out both;
+  animation-delay: calc(0.45s + var(--i) * 0.25s);
+}
+
+.cine-title.in .cine-ledger .zero {
+  animation: cine-in 0.6s ease-out 2s both;
+}
+
+@keyframes cine-draw {
+  from {
+    stroke-dashoffset: 100;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* The stars arrive one by one and settle in their ring */
+.cine-title.in .cine-ring polygon {
+  animation: cine-star 0.7s ease-out both;
+  animation-delay: calc(0.45s + var(--i) * 0.12s);
+}
+
+.cine-ctl {
+  position: absolute;
+  right: var(--gap);
+  bottom: var(--gap);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--gap-xs);
+}
+
+/* Buttons on the screens that take the whole window in a color of their
+   own (the film, the crash screen): white on the screen's color, the main
+   one filled white with the screen's color as its text */
+.cine {
+  --surface: var(--cine-to);
+}
+
+.crash {
+  --surface: var(--crash);
+}
+
+:is(.cine, .crash) .btn {
+  color: var(--on-crash);
+  background: color-mix(in srgb, var(--on-crash) 8%, transparent);
+  border-color: var(--on-crash-line);
+}
+
+:is(.cine, .crash) .btn:hover {
+  background: color-mix(in srgb, var(--on-crash) 16%, transparent);
+  border-color: var(--on-crash);
+}
+
+/* The screen takes the focus itself (js/ui/shell.js); it needs no ring */
+.crash:focus {
+  outline: none;
+}
+
+:is(.cine, .crash) .btn:focus-visible {
+  outline: 2px solid var(--on-crash);
+  outline-offset: 2px;
+}
+
+:is(.cine, .crash) .btn.primary,
+:is(.cine, .crash) .btn[aria-pressed="true"] {
+  color: var(--surface);
+  background: var(--on-crash);
+  border-color: var(--on-crash);
+}
+
+:is(.cine, .crash) .kbd {
+  color: inherit;
+  border-color: currentColor;
+  opacity: 0.8;
+}
+
+/* Reduced motion: the screens fade in and out without moving, and the
+   stars of the ring fade in where they stand */
+.cine.calm .cine-shot,
+.cine.calm .cine-shot.in,
+.cine.calm .cine-shot.out {
+  transform: none;
+}
+
+.cine.calm .cine-title.in .cine-ring polygon,
+.cine.calm .cine-title.in .cine-ledger path {
+  animation-name: cine-in;
+}
+
+@keyframes cine-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cine-star {
+  from {
+    opacity: 0;
+    transform: scale(0.2) rotate(-90deg);
+  }
+}
+
+/* An icon cut to its drawing takes its own width in a button; in lists
+   such as the sidebar it keeps the square, so the labels line up */
+.btn svg.icon.trim {
+  width: auto;
+}
+
+/* On a narrow phone the bar keeps the player's icon and stop button, and
+   its name moves to the tooltip, so the status keeps room */
+@media (max-width: 429px) {
+  .statusbar .egg-name {
+    display: none;
+  }
+}
+
+/* The film on a phone (after its own rules, so these win) */
+@media (max-width: 599px) {
+  /* The film's lines and tables fit a phone: smaller text and closer cells */
+  .cine {
+    padding: var(--gap-l) var(--gap-s);
+  }
+
+  .cine-line {
+    font-size: var(--fs-lead);
+  }
+
+  .cine-table {
+    font-size: var(--fs-small);
+  }
+
+  .cine-table .letter {
+    font-size: var(--fs-lead);
+  }
+
+  .cine-table :is(th, td) {
+    padding: var(--gap-xs);
+    white-space: normal;
+  }
+
+  .cine-ctl {
+    bottom: calc(7% + 10px);
+  }
+
+  /* The two figures stay side by side, their labels on two lines */
+  .cine-stats {
+    flex-wrap: nowrap;
+    gap: 20px;
+  }
+
+  .cine-stat {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+/* ---------- The crash screen ---------- */
+
+/* Every bad ending: the whole window in the red of the early ending's
+   film, white text in the game's type, the game's own buttons. One column
+   at a readable width, the same order for every reason, and an evidence
+   panel of fixed height so the actions keep their place. Under the game's
+   dialogs, so Load a save opens above it. */
+.crash {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-crash);
+  display: flex;
+  overflow-y: auto;
+  padding: var(--gap-l) var(--gap);
+  color: var(--on-crash);
+  /* The film's red, so the film leads into the screen without a change */
+  background: radial-gradient(circle at 50% 45%, var(--crash), var(--crash-deep)) fixed;
+  /* Shown without its film (a loaded run), it fades in; a plain fade, so
+     reduced motion keeps it */
+  animation: cine-in 0.8s ease-out both;
+}
+
+/* Laid under a film that fades out, it is there at once, so the page
+   never shows through the two fades (js/ui/shell.js) */
+.crash.led {
+  animation: none;
+}
+
+.crash-inner {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--gap);
+  width: min(720px, 100%);
+  margin: auto;
+}
+
+.crash-inner > * {
+  margin: 0;
+}
+
+.crash h1 {
+  font-size: var(--fs-screen);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.crash-reason {
+  font-size: var(--fs-lead);
+}
+
+.crash-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  height: 300px;
+  padding: var(--gap);
+  border: 1px solid var(--on-crash-line);
+  border-radius: var(--radius);
+}
+
+.crash-panel > svg,
+.crash-bars {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.crash-panel path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--on-crash) 30%, transparent);
+  stroke-width: 0.6;
+}
+
+.crash-panel path.stayed {
+  fill: var(--on-crash);
+  stroke: var(--crash);
+}
+
+.crash-panel path.left {
+  fill: url(#crash-hatch);
+  stroke: var(--on-crash);
+  stroke-width: 1;
+}
+
+.crash-panel .axis {
+  stroke: color-mix(in srgb, var(--on-crash) 50%, transparent);
+}
+
+.crash-panel .limit {
+  stroke: var(--on-crash);
+  stroke-dasharray: 6 4;
+}
+
+.crash-panel .series {
+  fill: none;
+  stroke: var(--on-crash);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.crash-panel .series.s1 {
+  stroke-dasharray: 2 4;
+  stroke-linecap: round;
+}
+
+.crash-panel text {
+  font-size: var(--fs-chart-l);
+  fill: color-mix(in srgb, var(--on-crash) 80%, transparent);
+}
+
+/* The figure of a run that ended in its first year */
+.crash-panel .point {
+  fill: var(--on-crash);
+  stroke: none;
+}
+
+.crash-panel text.value {
+  font-weight: 600;
+  fill: var(--on-crash);
+}
+
+.crash-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--gap-xs) var(--gap);
+  margin: 0;
+  font-size: var(--fs-small);
+}
+
+.crash-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+.crash-legend .sw {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--on-crash);
+  border-radius: 2px;
+}
+
+.crash-legend .sw.stayed {
+  background: var(--on-crash);
+}
+
+.crash-legend .sw.left {
+  background: repeating-linear-gradient(45deg, var(--on-crash) 0 1.5px, transparent 1.5px 4px);
+}
+
+.crash-legend .sw.line,
+.crash-legend .sw.limit {
+  height: 0;
+  border-width: 2px 0 0;
+  border-radius: 0;
+}
+
+.crash-legend .sw.line.s1 {
+  border-top-style: dotted;
+}
+
+.crash-legend .sw.limit {
+  border-top-style: dashed;
+}
+
+/* A panel with little in it: its content framed in tiles and centered
+   in the panel, as the grades of the finale */
+.crash-bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--gap);
+  width: min(520px, 100%);
+  margin: 0 auto;
+}
+
+.crash-bar {
+  padding: var(--gap-s) var(--gap);
+  border: 1px solid var(--on-crash-line);
+  border-radius: var(--radius);
+}
+
+.crash-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 12em) minmax(0, 1fr) 5em;
+  align-items: center;
+  gap: var(--gap-s);
+}
+
+.crash-bar .track {
+  height: 10px;
+  background: color-mix(in srgb, var(--on-crash) 20%, transparent);
+  border-radius: 5px;
+}
+
+.crash-bar .fill {
+  display: block;
+  height: 100%;
+  background: var(--on-crash);
+  border-radius: 5px;
+}
+
+.crash-bar .val {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.crash-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--gap-xs) var(--gap);
+  margin: 0;
+}
+
+.crash-facts dt {
+  color: var(--on-crash-dim);
+}
+
+.crash-facts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The actions share their rows evenly: all in one row when they fit,
+   else two even rows, else one column; never one alone on a line. The
+   number of columns is measured by U.fitActions (js/ui/finale.js). */
+.crash-actions {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 1), minmax(0, 1fr));
+  gap: var(--gap-s);
+}
+
+.crash-actions .btn {
+  white-space: nowrap;
+}
+
+/* In one row each button keeps at least its full label */
+.crash-actions.one-row {
+  grid-template-columns: repeat(var(--cols), minmax(max-content, 1fr));
+}
+
+.crash-code {
+  font-family: var(--mono);
+  font-size: var(--fs-small);
+  color: var(--on-crash-dim);
+}
+
+/* The finale of the true ending: the crash screen's layout in the slate
+   of the 2070 film */
+.crash.finale {
+  --surface: var(--finale);
+  background: radial-gradient(circle at 50% 45%, var(--finale), var(--finale-deep)) fixed;
+}
+
+/* The Federation of 2041: the crash screen's layout in the blue of its film */
+.crash.federation {
+  --surface: var(--fed);
+  background: radial-gradient(circle at 50% 45%, var(--fed), var(--fed-deep)) fixed;
+}
+
+.finale-grade-list {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  align-content: center;
+  gap: var(--gap);
+}
+
+.finale-grade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--gap-xs);
+  padding: var(--gap);
+  text-align: center;
+  border: 1px solid var(--on-crash-line);
+  border-radius: var(--radius);
+}
+
+.finale-grade .letter {
+  font-size: var(--fs-screen);
+  font-weight: 700;
+}
+
+/* The time-lapse: the year, the map or the charts, three figures and the
+   year's headline, one above the other */
+.timelapse {
+  place-items: stretch;
+}
+
+.tl-stage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-s);
+  width: min(900px, 100%);
+  height: 100%;
+  margin: 0 auto;
+  transition: opacity 0.9s ease;
+}
+
+/* Into the coda the stage fades out, then back in with the coda */
+.tl-stage.tl-leave {
+  opacity: 0;
+}
+
+/* The coda's headline is the last one: it keeps no room for a second line */
+.tl-coda .tl-head {
+  min-height: 0;
+}
+
+/* The coda's Show summary, under the last headline */
+.tl-end {
+  display: flex;
+  justify-content: center;
+}
+
+.tl-end[hidden] {
+  display: none;
+}
+
+.tl-year {
+  font-size: var(--fs-number);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cine-ink);
+}
+
+.tl-draw {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--gap-s);
+  min-height: 0;
+}
+
+/* The drawing takes the room left by the year, the figures and the
+   headline, so all of them stay in view */
+.tl-draw > svg {
+  flex: 1 1 0;
+  height: 0;
+  min-height: 120px;
+  width: 100%;
+}
+
+.tl-draw path {
+  fill: none;
+  stroke: var(--on-crash-line);
+  stroke-width: 0.6;
+}
+
+.tl-draw path.stayed {
+  fill: var(--on-crash);
+  stroke: var(--surface);
+  stroke-width: 1.2;
+}
+
+.tl-draw path.program {
+  fill: color-mix(in srgb, var(--on-crash) 50%, transparent);
+  stroke: var(--surface);
+  stroke-width: 1.2;
+}
+
+/* The members' outlines turn from the background's color to the white of
+   their fill as --tl-t goes from 0 to 1, over --tl-ease, so the borders
+   between them dissolve; the outlines of the states outside the Federation
+   are drawn again above them in their own style (js/ui/finale.js) */
+@supports (stroke: color-mix(in srgb, red 50%, blue)) {
+  .tl-draw path.stayed {
+    stroke: color-mix(in srgb, var(--on-crash) calc(var(--tl-t, 0) * 100%), var(--surface));
+    transition: stroke var(--tl-ease, 0s) linear;
+  }
+}
+
+.tl-draw path.tl-outer {
+  fill: none;
+  stroke: var(--on-crash-line);
+  stroke-width: 0.6;
+}
+
+.tl-draw path.tl-outer.o-left {
+  stroke: var(--on-crash);
+}
+
+.tl-draw path.tl-outer.o-program {
+  stroke: var(--surface);
+  stroke-width: 1.2;
+}
+
+.tl-draw path.left {
+  fill: url(#tl-hatch);
+  stroke: var(--on-crash);
+}
+
+.tl-draw .axis {
+  stroke: var(--on-crash-line);
+}
+
+.tl-draw text {
+  font-size: var(--fs-chart-l);
+  fill: var(--on-crash-dim);
+}
+
+.tl-draw .series {
+  fill: none;
+  stroke: var(--on-crash);
+  stroke-width: 2.5;
+}
+
+.tl-draw .series.s1 {
+  stroke-dasharray: 2 4;
+}
+
+.tl-draw .series.s2 {
+  stroke-dasharray: 8 4;
+}
+
+.crash-legend .sw.program {
+  background: color-mix(in srgb, var(--on-crash) 50%, transparent);
+}
+
+.crash-legend .sw.line.s2 {
+  border-top-style: dashed;
+}
+
+.tl-figs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-l);
+}
+
+.tl-fig {
+  display: flex;
+  flex-direction: column;
+}
+
+.tl-fig-v {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tl-fig-k {
+  font-size: var(--fs-small);
+  color: var(--on-crash-dim);
+}
+
+.tl-head {
+  min-height: 3em;
+  margin: 0;
+  font-size: var(--fs-lead);
+}
+
+.timelapse .crash-legend {
+  color: var(--on-crash);
+}
+
+/* The page under it keeps still */
+.crash-open body {
+  overflow: hidden;
+}
+
+/* The review banner keeps the page's spacing below it */
+.review-banner {
+  margin-bottom: var(--gap);
+}
+
+/* Browsing a finished run: its banner carries the color of its end screen */
+.review-banner.crashed {
+  border-left: 4px solid var(--crash);
+}
+
+.review-banner.finished {
+  border-left: 4px solid var(--finale);
+}
+
+/* On a phone the buttons fill the width, one under the other */
+@media (max-width: 599px) {
+  .crash-actions .btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .crash-bar {
+    grid-template-columns: minmax(0, 1fr) 5em;
+  }
+
+  .crash-bar .lbl {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,0 +1,27 @@
+SPDX-License-Identifier: GPL-3.0-only
+
+Copyright (C) 2026 miculpionier
+
+The program code in this project is licensed under the GNU General Public
+License version 3.0. See licenses/GPL-3.0.txt for the full text.
+
+Text and data (docs/, DATA.md, README.md, TRANSLATING.md, and the text and
+figures in js/data/) are licensed under Creative Commons Attribution-ShareAlike
+4.0 International. See licenses/CC-BY-SA-4.0.txt.
+
+Files from other projects are kept in vendor/ with their own licenses:
+
+- Breeze icons, KDE: LGPL-3.0-or-later. vendor/breeze-icons/ holds the
+  original files, COPYING-ICONS and LGPL-3.0.txt; js/ui/icons.js is made
+  from them.
+- Noto Sans, the Noto Project Authors: SIL Open Font License 1.1.
+  See vendor/noto-sans/OFL.txt.
+- Natural Earth map data: public domain. See vendor/natural-earth/LICENSE.md;
+  js/data/map.js is made from it.
+
+The sound engine (js/audio/sound.js) and the translation layer
+(js/core/i18n.js) are adapted from Selk, GPL-3.0.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.

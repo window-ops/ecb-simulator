@@ -1,0 +1,172 @@
+/*
+ * Motion. Decorative motion (hover transitions, sliding toasts, dialogs
+ * opening) stops when the system or the game's settings ask for reduced
+ * motion. Four animations show information and always run: the turn
+ * transition, the Council vote appearing member by member, charts and
+ * values moving to their new figures, and the ending film, whose screens
+ * then fade without moving (docs/design-interface.md, section 16.3).
+ *
+ * Fast mode (Settings > Debug) shortens them; js/ui/shell.js and
+ * js/ui/views/agenda.js read it for the waits written in JavaScript.
+ */
+
+.btn,
+.sideitem,
+.opt,
+.aitem,
+.ind {
+  transition: border-color 0.12s, background-color 0.12s;
+}
+
+.toast {
+  animation: toast-in 0.22s ease-out;
+}
+
+.dialog {
+  animation: dialog-in 0.16s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The title screen: each theme's motif moves within its tile (the SVG
+   animates itself, js/ui/title.js); Green's leaves also fall, a tile
+   every seven seconds. The yellow line pulses, as on the title screen of
+   Minecraft. */
+.title-pan.fall {
+  animation: title-fall calc(14s * var(--t-slow, 1)) linear infinite;
+}
+
+/* Settings > Appearance can still the backdrop */
+.title-pan.still {
+  animation: none;
+}
+
+.splash {
+  animation: splash calc(0.5s * var(--t-slow, 1)) ease-in-out infinite alternate;
+}
+
+@keyframes title-fall {
+  to {
+    background-position: 0 calc(var(--tile-h, 120px) * 2), 0 0;
+  }
+}
+
+@keyframes splash {
+  to {
+    scale: 1.08;
+  }
+}
+
+/* ---------- Essential: these run under reduced motion too ---------- */
+
+.yearfx .y {
+  animation: year-in 1.1s ease-out both;
+}
+
+:root.fast .yearfx .y {
+  animation-duration: 0.3s;
+}
+
+@keyframes year-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+
+  30% {
+    opacity: 1;
+    transform: none;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+.vote .dot.cast {
+  animation: dot-in 0.18s ease-out both;
+}
+
+@keyframes dot-in {
+  from {
+    opacity: 0.3;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.chart .run.draw {
+  stroke-dasharray: var(--len) var(--len);
+  stroke-dashoffset: var(--len);
+  animation: draw 0.9s ease-out forwards;
+}
+
+:root.fast .chart .run.draw {
+  animation-duration: 0.2s;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+/* What was open when the motion setting changed keeps still: its opening
+   animation does not start then (js/core/theme.js). Closing a dialog
+   still fades it */
+:is(.toast, .award-pop, .dialog, .pop-page, .dbody > *).settled {
+  animation: none;
+}
+
+/* The system's setting, unless the game's setting asks for full motion */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) :is(.btn, .sideitem, .opt, .aitem, .ind, .switch .track, .switch .track::after) {
+    transition: none;
+  }
+
+  :root:not([data-motion="full"]) :is(.toast, .award-pop, .dialog, .pop-page, .dbody > *, .title-pan, .splash) {
+    animation: none;
+  }
+}
+
+/* The game's own setting */
+:root[data-motion="reduce"] :is(.btn, .sideitem, .opt, .aitem, .ind, .switch .track, .switch .track::after) {
+  transition: none;
+}
+
+:root[data-motion="reduce"] :is(.toast, .award-pop, .dialog, .pop-page, .dbody > *, .title-pan, .splash) {
+  animation: none;
+}

@@ -1,0 +1,1031 @@
+/*
+ * Breeze: the colors of KDE's color schemes BreezeLight.colors and
+ * BreezeDark.colors (KDE/breeze, colors/), and widgets drawn after the Breeze
+ * widget style. The accent is chosen by the player (Plasma's ten accent
+ * colors or a custom one) and written to --accent by js/core/theme.js.
+ *
+ * Font: Noto Sans, the default font of Plasma, kept in vendor/noto-sans/
+ * under the SIL Open Font License. Its @font-face rules, and Hack's, are in
+ * css/loader.css, which loads first: the loading screen uses both fonts,
+ * and a family named before its @font-face makes Firefox look for a
+ * system font, which its fingerprinting protection blocks.
+ */
+
+/* ---------- Colors ---------- */
+
+:root {
+  /* Text sizes. KDE uses two for running text: the default font and the
+     small font, for secondary text only (Kirigami.Theme.smallFont). The
+     larger steps are for headings, figures and the screens that take the
+     whole window (the film, the crash screen, the year transition). Every
+     size in the game comes from this scale. */
+  /* The base: 14px, or 17px with Settings > Motion and text > Large */
+  --root-size: 14px;
+  --fs-small: 0.95rem;
+  --fs-body: 1rem;
+  --fs-lead: 1.15rem;
+  --fs-subtitle: 1.2rem;
+  --fs-title: 1.35rem;
+  --fs-screen: 1.8rem;
+  --fs-display: 2.6rem;
+  --fs-hero: clamp(1.8rem, 6vw, 3rem);
+  --fs-number: clamp(2.4rem, 9vw, 3.6rem);
+  --fs-year: clamp(64px, 18vw, 160px);
+  /* Labels drawn in charts, maps and the film's drawings, in the
+     drawing's own units: small for a chart in a page, medium and large
+     for drawings shown across the whole window */
+  --fs-chart: 11px;
+  --fs-chart-m: 13px;
+  --fs-chart-l: 18px;
+
+  /* Spacing: the steps of KDE's grid (Kirigami.Units) */
+  --gap-xs: 5px;
+  /* 8px, the one step off the multiples of five: the space above and
+     below each setting in a card, which keeps a card readable without
+     lines between its settings */
+  --gap-xs-readable: 8px;
+  --gap-s: 10px;
+  --gap: 15px;
+  --gap-l: 30px;
+  /* The debug tools, a little tighter than the game: their padding and the
+     space between their groups and rows */
+  --dbg-gap: 8px;
+
+  /* Layers, from the page up: one list, so each screen knows its place */
+  --z-sticky: 5;
+  --z-crash: 35;
+  --z-debug: 38;
+  --z-dialog: 40;
+  --z-yearfx: 45;
+  --z-toast: 50;
+  --z-coach: 55;
+  --z-film: 80;
+  --z-nojs: 100;
+
+  /* The colors of situations: a bad ending, in its film and crash screen,
+     the same dark red from the middle to the edge of the screen */
+  --crash: #5a1014;
+  --crash-deep: #120304;
+  /* The Federation of 2041, in the blue of its film */
+  --fed: #0f3a7a;
+  --fed-deep: #030a18;
+  /* The true ending, in the slate of the 2070 film */
+  --finale: #2f3e4c;
+  --finale-deep: #0b1015;
+  --on-crash: #ffffff;
+  --on-crash-dim: rgba(255, 255, 255, 0.75);
+  --on-crash-line: rgba(255, 255, 255, 0.35);
+  /* The themed title screens: white text over the backdrop, the gold of
+     the logo and the main button, and the Minecraft yellow of the line
+     beside the logo; the same in both themes */
+  --title-ink: #ffffff;
+  --title-ink-dim: rgba(255, 255, 255, 0.85);
+  --title-line: rgba(255, 255, 255, 0.6);
+  --title-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+  --title-gold: #ffcc00;
+  --title-gold-hover: #ffd633;
+  --title-gold-edge: #c79f00;
+  /* The gold on a light card, darker to stay readable */
+  --title-gold-card: #d4a800;
+  --on-gold: #232629;
+  --splash: #ffff55;
+  --splash-shadow: #3f3f15;
+  --splash-card: #e0b000;
+  --splash-card-shadow: #4d3d00;
+  /* The layer behind a dialog, and the darker one around the tour's hole */
+  --scrim: rgba(0, 0, 0, 0.35);
+  --scrim-tour: rgba(0, 0, 0, 0.45);
+  --accent: #3daee9;
+  --on-accent: #ffffff;
+
+  /* Breeze Light */
+  --window: #eff0f1;
+  --window-alt: #e3e5e7;
+  --view: #ffffff;
+  --view-alt: #f7f7f7;
+  --button: #fcfcfc;
+  --header: #dee0e2;
+  --tooltip: #f7f7f7;
+  --text: #232629;
+  --text-dim: #707d8a;
+  --link: #2980b9;
+  --negative: #da4453;
+  --neutral: #f67400;
+  /* A caution, such as a game changed by the debug tools: Breeze's yellow */
+  --caution: #fdbc4b;
+  /* The empty part of a slider's track */
+  --track: color-mix(in srgb, var(--text) 20%, transparent);
+  --positive: #27ae60;
+
+  --frame: var(--track);
+  --frame-soft: color-mix(in srgb, var(--text) 10%, transparent);
+  /* The dotted line between the rows of a list, as in a table: subtle */
+  --rule: 1px dotted var(--frame-soft);
+  --hover: color-mix(in srgb, var(--accent) 20%, transparent);
+  --press: color-mix(in srgb, var(--accent) 35%, transparent);
+  --selected: var(--accent);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+
+  /*
+   * Chart series, checked with the dataviz palette validator against the
+   * Breeze view surfaces: the run in blue, the record in orange and dashed.
+   */
+  --series-run: #2980b9;
+  --series-record: #d35400;
+
+  /* Parties of the Federal Parliament: the dataviz reference palette, slots 1 to 4 */
+  --party-1: #2a78d6;
+  --party-2: #eb6834;
+  --party-3: #1baf7a;
+  --party-4: #eda100;
+
+  /*
+   * Map: a one-hue blue ramp (dataviz reference ramp, steps 250 to 650,
+   * checked as an ordinal ramp on the map's sea) and three membership colors
+   * (reference slots 1 to 3, which stay apart in every pair). A state that
+   * left the euro is drawn hatched.
+   */
+  --ramp-1: #86b6ef;
+  --ramp-2: #5598e7;
+  --ramp-3: #2a78d6;
+  --ramp-4: #1c5cab;
+  --ramp-5: #104281;
+  --map-land: #dcdee0;
+  --map-sea: #ffffff;
+  --map-member: #2a78d6;
+  --map-program: #eb6834;
+  --map-eu: #1baf7a;
+
+  --radius: 4px;
+  /* The height of a button or a field */
+  --control: 32px;
+  /* Square buttons: an icon button or a collapsed toolbar button, and the
+     small one beside a heading */
+  --btn-square: 32px;
+  --btn-square-s: 24px;
+  /* Only the page's own fonts and generic families, which every browser allows */
+  --font: "Noto Sans", system-ui, sans-serif;
+  --mono: "Hack", monospace;
+  color-scheme: light;
+}
+
+/* Breeze Dark, when the system asks for it and the player left the theme on the system's choice */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --window: #202326;
+    --window-alt: #292c30;
+    --view: #141618;
+    --view-alt: #1d1f22;
+    --button: #292c30;
+    --header: #292c30;
+    --tooltip: #292c30;
+    --text: #fcfcfc;
+    --text-dim: #a1a9b1;
+    --link: #1d99f3;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    --series-run: #2f95d6;
+    --series-record: #cf7a28;
+    --party-1: #3987e5;
+    --party-2: #d95926;
+    --party-3: #199e70;
+    --party-4: #c98500;
+    --ramp-1: #184f95;
+    --ramp-2: #256abf;
+    --ramp-3: #3987e5;
+    --ramp-4: #6da7ec;
+    --ramp-5: #9ec5f4;
+    --map-land: #2c3034;
+    --map-sea: #181a1d;
+    --map-member: #3987e5;
+    --map-program: #d95926;
+    --map-eu: #199e70;
+    color-scheme: dark;
+  }
+}
+
+/* Breeze Dark, chosen in the settings */
+:root[data-theme="dark"] {
+  --window: #202326;
+  --window-alt: #292c30;
+  --view: #141618;
+  --view-alt: #1d1f22;
+  --button: #292c30;
+  --header: #292c30;
+  --tooltip: #292c30;
+  --text: #fcfcfc;
+  --text-dim: #a1a9b1;
+  --link: #1d99f3;
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  --series-run: #2f95d6;
+  --series-record: #cf7a28;
+  --party-1: #3987e5;
+  --party-2: #d95926;
+  --party-3: #199e70;
+  --party-4: #c98500;
+  --ramp-1: #184f95;
+  --ramp-2: #256abf;
+  --ramp-3: #3987e5;
+  --ramp-4: #6da7ec;
+  --ramp-5: #9ec5f4;
+  --map-land: #2c3034;
+  --map-sea: #181a1d;
+  --map-member: #3987e5;
+  --map-program: #d95926;
+  --map-eu: #199e70;
+  color-scheme: dark;
+}
+
+/* ---------- Base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: var(--root-size);
+  -webkit-text-size-adjust: 100%;
+}
+
+:root[data-size="large"] {
+  --root-size: 17px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--window);
+}
+
+a {
+  color: var(--link);
+}
+
+/* Even line breaks, when Settings > Motion and text asks for them; where
+   the browser lacks text-wrap: pretty, js/core/wrap.js stands in. Each
+   kind of element has its own switch (WRAP_PARTS in js/core/wrap.js) */
+:root[data-wrap="pretty"][data-wrap-other="on"] body * {
+  text-wrap-style: pretty;
+}
+
+:root[data-wrap="pretty"][data-wrap-text="on"] :is(p, li, dd, .text, .histbox, .x, .toast-text > div, .adv .rec, .adv .quote, .adv .fc, .l, .award-text) {
+  text-wrap: pretty;
+}
+
+:root[data-wrap="pretty"][data-wrap-headings="on"] :is(h1, h2, h3, h4, .award-name) {
+  text-wrap: balance;
+}
+
+/* text-wrap turns wrapping on, so a button's label, which never wraps, is left out */
+:root[data-wrap="pretty"][data-wrap-labels="on"] :is(label, .lbl, .switch > span:last-child, .quick-field > span):not(.btn *) {
+  text-wrap: pretty;
+}
+
+/* A pill may then take a second line, broken evenly */
+:root[data-wrap="pretty"][data-wrap-pills="on"] .badge {
+  white-space: normal;
+  text-wrap: pretty;
+}
+
+/* A number cell keeps its one line: text-wrap would turn wrapping back on */
+:root[data-wrap="pretty"][data-wrap-tables="on"] td:not(.num) {
+  text-wrap: pretty;
+}
+
+/* Menus and the lists of views and sections: on a phone some become tabs
+   on one line, so only where a line breaks changes, never whether it may */
+:root[data-wrap="pretty"][data-wrap-menus="on"] .sideitem > span:not(.count) {
+  text-wrap-style: pretty;
+}
+
+:root[data-wrap="pretty"][data-wrap-tooltips="on"] :is(.popover div, .popover p, .coach p, .coach div) {
+  text-wrap-style: pretty;
+}
+
+:root[data-wrap="pretty"][data-wrap-lists="on"] :is(.aitem .t, .aitem .a, dt, .slot-info > div) {
+  text-wrap-style: pretty;
+}
+
+@supports not (text-wrap-style: pretty) {
+  @media (min-width: 600px) {
+    :root[data-wrap="pretty"][data-wrap-menus="on"] .sideitem > span:not(.count) {
+      text-wrap: pretty;
+    }
+  }
+}
+
+/* One-line controls end at the top of the capitals and at the baseline, so
+   their text sits in the optical middle of the control. Paragraphs, list
+   items, definitions and headings keep their line height, which spaces
+   stacked lines of text in every browser. Browsers without text-box keep
+   ordinary boxes. */
+@supports (text-box: trim-both cap alphabetic) {
+  :is(summary, .lbl, .btn, .badge, .sideitem > span:not(.count), .ind .k, .ind .v) {
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* On a phone a settings row stacks its label over its control, and the
+     text of its switches and radio buttons is trimmed the same way */
+  @media (max-width: 599px) {
+    .row :is(.switch > span:last-child, .check > span) {
+      text-box: trim-both cap alphabetic;
+    }
+  }
+}
+
+/* The hidden attribute always hides, whatever display a class sets */
+[hidden] {
+  display: none !important;
+}
+
+/* Headings as Kirigami's Heading levels 1 to 4: a little larger than the
+   text, demi-bold, so weight more than size sets them apart. They have
+   the same space above and below. */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h1 {
+  margin: 0.5em 0;
+  font-size: var(--fs-title);
+}
+
+h2 {
+  margin: 0.6em 0;
+  font-size: var(--fs-subtitle);
+}
+
+h3 {
+  margin: 0.7em 0;
+  font-size: var(--fs-lead);
+}
+
+h4 {
+  margin: 0.7em 0;
+  font-size: var(--fs-lead);
+}
+
+p,
+ul,
+ol,
+dl {
+  margin: 0 0 0.75em;
+}
+
+ul,
+ol {
+  padding-left: 1.4em;
+}
+
+li + li {
+  margin-top: 0.25em;
+}
+
+/*
+ * Flush edges: the first visible child of a box has no space above it and
+ * the last visible child no space below it. Only direct children that have
+ * text margins are affected, and hidden elements do not count, so a hidden
+ * table after the last paragraph leaves that paragraph flush.
+ */
+:is(.page, .group, .dbody, .pane, .advcard, .adv, .histbox, .result, .grade, .popover, .coach, .toast-text, .notes, .notes li, .start, .dbg-body, .prose, .advice-wrap, .pop-page, .report-figures)
+  > :is(h1, h2, h3, h4, p, ul, ol, dl, .table-wrap, .grades, .init-row, .row):first-child {
+  margin-top: 0;
+}
+
+:is(.page, .group, .dbody, .pane, .advcard, .adv, .histbox, .result, .grade, .popover, .coach, .toast-text, .notes, .notes li, .start, .dbg-body, .prose, .advice-wrap, .pop-page, .report-figures)
+  > :is(h1, h2, h3, h4, p, ul, ol, dl, .table-wrap, .grades, .init-row, .row):last-child {
+  margin-bottom: 0;
+}
+
+:is(.page, .group, .dbody, .pane, .advcard, .adv, .histbox, .result, .grade, .popover, .coach, .toast-text, .notes, .notes li, .start, .dbg-body, .prose, .advice-wrap, .pop-page, .report-figures)
+  > :is(h1, h2, h3, h4, p, ul, ol, dl, .table-wrap, .grades, .init-row, .row):nth-child(1 of :not([hidden])) {
+  margin-top: 0;
+}
+
+:is(.page, .group, .dbody, .pane, .advcard, .adv, .histbox, .result, .grade, .popover, .coach, .toast-text, .notes, .notes li, .start, .dbg-body, .prose, .advice-wrap, .pop-page, .report-figures)
+  > :is(h1, h2, h3, h4, p, ul, ol, dl, .table-wrap, .grades, .init-row, .row):nth-last-child(1 of :not([hidden])) {
+  margin-bottom: 0;
+}
+
+.dim {
+  color: var(--text-dim);
+}
+
+.small {
+  font-size: var(--fs-small);
+}
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ---------- Icons ---------- */
+
+.icon {
+  display: inline-block;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+  fill: currentColor;
+}
+
+/* Breeze icon sizes: 16px in buttons and lines of text, 22px in the
+   toolbar, the sidebar and the tabs */
+.btn .icon {
+  width: 22px;
+  height: 22px;
+}
+
+.icon.s16 {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  /* 32px, the height of a list or a field: a 22px icon, 4px above and
+     below, and the border */
+  min-height: var(--control);
+  padding: 4px 10px;
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: var(--button);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.btn:active,
+.btn[aria-pressed="true"] {
+  background: var(--press);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  border-color: var(--frame);
+  cursor: default;
+}
+
+.btn.primary {
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 16%, var(--button));
+  border-color: var(--accent);
+}
+
+.btn.primary:hover {
+  background: color-mix(in srgb, var(--accent) 28%, var(--button));
+}
+
+/* A key to press, beside a button's label: a small key cap in the
+   secondary text color, or in the button's own text color on a primary
+   button */
+.kbd {
+  display: inline-block;
+  /* 2px: the label's own spacing makes up the rest of the gap */
+  margin-left: 2px;
+  padding: 1px 5px;
+  font: inherit;
+  font-size: var(--fs-small);
+  line-height: 1.3;
+  color: var(--text-dim);
+  border: 1px solid var(--frame);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+}
+
+.btn.primary .kbd {
+  color: inherit;
+  border-color: currentColor;
+  opacity: 0.8;
+}
+
+/* A button with only an icon is square */
+.btn.icon-only {
+  width: var(--btn-square);
+  padding: 0;
+}
+
+.btn.flat {
+  background: transparent;
+  border-color: transparent;
+}
+
+.btn.flat:hover {
+  background: var(--hover);
+  border-color: transparent;
+}
+
+.btn.danger {
+  border-color: var(--negative);
+}
+
+/* A danger button keeps to red when pointed at and pressed, in place of
+   the accent: the press color is the red at the strength of --press */
+.btn.danger:hover {
+  border-color: var(--negative);
+}
+
+.btn.danger:active,
+.btn.danger[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--negative) 35%, transparent);
+}
+
+/* A button inside a table cell */
+.btn.cell {
+  min-height: 26px;
+  padding: 1px 5px;
+}
+
+/* ---------- Fields ---------- */
+
+/* Every control takes the game's font and size, never the browser's own
+   (Arial at 13.33px on Windows), radio buttons and check boxes included */
+input,
+button,
+select,
+textarea {
+  font: inherit;
+}
+
+input[type="text"],
+input[type="search"],
+input[type="number"],
+select,
+textarea {
+  max-width: 100%;
+  min-height: 32px;
+  padding: 5px 10px;
+  font: inherit;
+  color: var(--text);
+  background: var(--view);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+}
+
+/* Drop-down lists draw their own arrow, so they look the same in every
+   browser: two halves of a small triangle in the secondary text color */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 30px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%), linear-gradient(-45deg, transparent 50%, var(--text-dim) 50%);
+  background-position: calc(100% - 15px) center, calc(100% - 10px) center;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+label {
+  cursor: pointer;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0 5px 0 0;
+  vertical-align: middle;
+  background: var(--view);
+  border: 1px solid var(--frame);
+  cursor: pointer;
+}
+
+input[type="checkbox"] {
+  border-radius: 3px;
+}
+
+input[type="radio"] {
+  border-radius: 50%;
+}
+
+input[type="checkbox"]:hover,
+input[type="radio"]:hover {
+  border-color: var(--accent);
+}
+
+input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+input[type="checkbox"]:checked::after {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border: 2px solid var(--on-accent);
+  border-top: 0;
+  border-right: 0;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+input[type="radio"]:checked {
+  border-color: var(--accent);
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+}
+
+/* Switch, as in Kirigami */
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  cursor: pointer;
+}
+
+.switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.switch .track {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 18px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--text) 25%, transparent);
+  transition: background 0.15s;
+}
+
+.switch .track::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--button);
+  border: 1px solid var(--frame);
+  transition: transform 0.15s;
+}
+
+.switch input:checked + .track {
+  background: var(--accent);
+}
+
+.switch input:checked + .track::after {
+  transform: translateX(18px);
+}
+
+.switch input:focus-visible + .track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Slider */
+input[type="range"]:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Any other control that cannot apply fades the same way, its label with
+   it, and a settings row that holds only such controls dims its label */
+select:disabled,
+.switch:has(> input:disabled),
+.check:has(> input:disabled),
+:is(input[type="checkbox"], input[type="radio"]):disabled:not(label > *) {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.switch:has(> input:disabled) > input,
+.check:has(> input:disabled) > input {
+  cursor: default;
+}
+
+.row.off > .lbl {
+  opacity: 0.6;
+}
+
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  max-width: 260px;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--fill, 50%), var(--track) var(--fill, 50%));
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--track);
+}
+
+input[type="range"]::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--button);
+  border: 1px solid var(--frame);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--button);
+  border: 1px solid var(--frame);
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  border-color: var(--accent);
+}
+
+input[type="color"] {
+  width: 40px;
+  height: 30px;
+  padding: 2px;
+  background: var(--button);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+/* ---------- Meters, frames, badges ---------- */
+
+.meter {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--text) 15%, transparent);
+}
+
+.meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.meter .mark {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--text);
+}
+
+.group {
+  padding: 10px;
+  background: var(--view);
+  border: 1px solid var(--frame-soft);
+  border-radius: var(--radius);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 10px;
+  font-size: var(--fs-small);
+  white-space: nowrap;
+  color: var(--text);
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+
+/* Chips, as subtle as Kirigami's: tinted, without outlines; the vote is
+   plain secondary text */
+.badge.draghi {
+  background: color-mix(in srgb, var(--neutral) 18%, transparent);
+}
+
+.badge.troika {
+  background: color-mix(in srgb, var(--negative) 16%, transparent);
+}
+
+.badge.intended {
+  background: color-mix(in srgb, var(--positive) 18%, transparent);
+}
+
+/* The instruments' state and kind */
+.badge.on {
+  background: color-mix(in srgb, var(--positive) 20%, transparent);
+}
+
+.badge.off {
+  color: var(--text-dim);
+}
+
+.badge.later {
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px dashed var(--frame);
+}
+
+.badge.alt {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.badge.hist {
+  background: transparent;
+  border: 1px dashed var(--frame);
+}
+
+/* The expected Council vote: a pill, its text secondary */
+.badge.vote {
+  color: var(--text-dim);
+}
+
+/* Status text always comes with an icon or a word, never color alone */
+.good {
+  color: var(--positive);
+}
+
+.bad {
+  color: var(--negative);
+}
+
+.warnc {
+  color: var(--neutral);
+}
+
+/* ---------- Tables ---------- */
+
+.table-wrap {
+  margin: 0 0 0.75em;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 5px 10px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--frame-soft);
+}
+
+/* Column heads stay on one line; the wrapper scrolls when the table is wider than the page */
+th {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-dim);
+  border-bottom-color: var(--frame);
+}
+
+td.num,
+th.num {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+tbody tr:hover {
+  background: var(--hover);
+}
+
+tr.sel {
+  background: var(--hover);
+}
+
+/* ---------- Popovers ---------- */
+
+.pop-page > h4 {
+  margin-bottom: 0.4em;
+}
+
+/* Branching inside a popover, as GNOME's popover menus slide */
+.pop-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: -5px 0 0.4em -5px;
+}
+
+/* Beside the back button the title has no margin, so the two share a
+   middle; the selector outweighs ".popover h4" below */
+.popover .pop-head h4 {
+  margin: 0;
+}
+
+.btn.pop-back {
+  width: 26px;
+  min-height: 26px;
+  height: 26px;
+}
+
+.pop-page.slide-in {
+  animation: pop-slide-in 0.18s ease-out;
+}
+
+.pop-page.slide-back {
+  animation: pop-slide-back 0.18s ease-out;
+}
+
+@keyframes pop-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+@keyframes pop-slide-back {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+.popover {
+  position: fixed;
+  z-index: 60;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 10px 10px;
+  color: var(--text);
+  background: var(--tooltip);
+  border: 1px solid var(--frame);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* Every tooltip's heading keeps the same space above its text, the map's
+   and the charts' included */
+.popover h4 {
+  margin-bottom: 5px;
+}
