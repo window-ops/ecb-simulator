@@ -40,7 +40,6 @@
     }
     if (S.debugBarOn && S.debugBarOn()) { page.appendChild(debugBar(G)); }
     if (U.cardIndex >= G.agenda.length) { U.cardIndex = 0; }
-    if (U.ratePillFor != null && U.ratePillFor !== U.cardIndex) { U.ratePillFor = null; }
     var wrap = el("div", "agenda");
     var list = el("div", "agenda-list"); list.setAttribute("role", "group"); list.setAttribute("aria-label", S.t("Items on the agenda"));
     G.agenda.forEach(function (e, i) {
@@ -81,12 +80,10 @@
     meta.appendChild(el("span", "", card.actor));
     box.appendChild(meta);
     var h = el("h2", "", card.title);
-    /* The rate item shows the main rate as a small pill in its title: the
-       current rate while it is open, the rate set for the year once decided.
-       In 2008 the rate set waits until the item is opened again, so it is
-       not on the same screen as the decision just taken */
+    /* The rate item shows the main rate as a small pill in its title:
+       the current rate while open, and the rate set once decided. */
     var pillRate = null, pillLabel = "";
-    if (entry.done && entry.rate && (G.year !== 2008 || U.ratePillFor !== idx)) {
+    if (entry.done && entry.rate) {
       pillRate = entry.rate.to; pillLabel = S.t("Main rate set at {r}%", { r: pillRate.toFixed(2) });
     } else if (!entry.done && entry.id === "rate") {
       pillRate = G.pol.rate; pillLabel = S.t("Main rate now {r}%", { r: pillRate.toFixed(2) });
@@ -331,7 +328,6 @@
     var next = G.agenda.findIndex(function (e) { return !e.done; });
     S.saves.write("auto", G);
     U.toCard = true;
-    if (G.year === 2008) { U.ratePillFor = U.cardIndex; }
     U.render();
     if (next < 0) { U.toast(S.t("Every item is decided. Use your initiatives, then end the year."), "good"); }
   }
