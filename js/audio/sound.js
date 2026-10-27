@@ -272,9 +272,11 @@
       if (!ctx || !SOUNDS[name]) { return; }
       if (!bakedOnce) { bake(); }
       var blend = false;
-      if (pendingClick && name !== "click") {
+      if (pendingClick) {
         clearTimeout(pendingClick); pendingClick = null;
-        blend = !audition && !ownClick[name] && S.soundSetting("click").on;
+        if (name !== "click") {
+          blend = !audition && !ownClick[name] && S.soundSetting("click").on;
+        }
       }
       played = true;
       if (!playedReset) { playedReset = setTimeout(function () { played = false; playedReset = null; }, 0); }

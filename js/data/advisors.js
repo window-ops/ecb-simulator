@@ -110,7 +110,7 @@
       params: { mult: 1.3, multCalm: 0.6, panic: 1.2, infl: 0.25, rate: 0.5, confidence: 0 },
       lines: {
         hawk: "Inflation is above target, and people are starting to expect more of it. We should act before those expectations rise further.",
-        dove: "Inflation is below target and output is falling. Rates should come down, and stay low until the recovery is certain.",
+        dove: "Inflation is below target. Rates should come down, and stay low until the recovery is certain.",
         purchases: "With rates near zero, purchases are the tool we have left. A backstop works best when markets believe it.",
         troika: "Support works when it comes with a plan. Conditions keep our support from being abused.",
         fiscal: "Government spending has a larger effect than usual with rates near zero.",
@@ -136,9 +136,9 @@
       weights: { hawk: -1.6, purchases: 0.8, troika: -1.6, fiscal: 1.8, democratic: 0.8, public: 0.6, discipline: -1.0, restructure: 0.6 },
       params: { mult: 1.8, multCalm: 1.2, panic: 1.8, infl: 0.15, rate: 0.5, confidence: -0.3 },
       lines: {
-        dove: "Raising rates in a recession would make it worse. Unemployment is the emergency.",
+        dove: "Reducing rates supports demand when inflation is low. Unemployment remains the priority.",
         hawk: "The economy is producing near its limit; a small rise is reasonable now.",
-        troika: "The programs cut demand in a recession. Every cut shrinks output faster than it shrinks debt.",
+        troika: "The programs cut demand when the economy is weak. Every cut shrinks output faster than it shrinks debt.",
         fiscal: "Public spending keeps demand up when households and firms spend less. The multiplier is large right now.",
         purchases: "A central bank that guarantees the debt in its own currency ends a panic. This one should.",
         other: "This protects jobs and wages."
@@ -221,7 +221,7 @@
         public: "Credit should go where the public needs it. Private banks lent to property; public banks can lend to production.",
         troika: "The memoranda sold public assets when prices were lowest. That transfers public wealth to the creditors.",
         restructure: "Debt that cannot be paid will not be paid. Better to cancel it in an orderly way.",
-        fiscal: "Public investment brings in more than it costs when a third of young people are out of work.",
+        fiscal: "Public investment brings in more than it costs when unemployment is high.",
         purchases: "The bank can hold this debt for as long as it chooses.",
         dove: "Cheaper credit for public investment and for households in debt.",
         hawk: "Prices are rising faster than wages; a rise is acceptable if credit to public investment continues.",

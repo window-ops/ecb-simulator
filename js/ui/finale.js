@@ -104,8 +104,11 @@
         again(G), review(), newGame()] });
   };
   U.finaleScreen = function (G) {
+    var reason = G.flags.greekSettled
+      ? S.t("The Greek loans of 2010 to 2018 were settled in {y}. The Federation's institutions continue without you, and the bank no longer needs its president.", { y: G.flags.greekSettled })
+      : S.t("The last payment on the Greek loans of 2010 to 2018 falls due. The Federation's institutions continue without you, and the bank no longer needs its president.");
     return periodScreen(G, { cls: "finale", title: S.t("Your presidency is complete"),
-      reason: S.t("The last payment on the Greek loans of 2010 to 2018 falls due. The Federation's institutions continue without you, and the bank no longer needs its president."),
+      reason: reason,
       actions: [[S.t("Watch the time-lapse"), "play", function () { U.timelapse(G); }, true, "end.timelapse"], again(G), review(), newGame()] });
   };
 
@@ -276,7 +279,9 @@
         mapYear(last, 0);
         yearEl.textContent = S.t("{a} to {b}", { a: ys[0], b: last });
         figsFor(last);
-        head.textContent = S.t("{n} years of the run, from the first decision to the last payment on the Greek loans.", { n: ys.length });
+        head.textContent = G.flags.greekSettled
+          ? S.t("{n} years of the run, from the first decision to the settlement of the Greek loans.", { n: ys.length })
+          : S.t("{n} years of the run, from the first decision to the last payment on the Greek loans.", { n: ys.length });
         live.textContent = yearEl.textContent + ". " + head.textContent;
         out.hidden = false;
         go.focus({ preventScroll: true });
